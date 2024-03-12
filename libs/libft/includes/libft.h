@@ -6,17 +6,18 @@
 /*   By: ulayus <marvin@42.fr>                      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/30 00:10:23 by ulayus            #+#    #+#             */
-/*   Updated: 2022/10/04 13:40:45 by ulayus           ###   ########.fr       */
+/*   Updated: 2024/03/12 11:42:09 by ulayus           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#ifndef LIBFT_H
-# define LIBFT_H
+#pragma once
 
-# include <stddef.h>
-# include <stdlib.h>
-# include <unistd.h>
-# include <limits.h>
+#include <stddef.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <limits.h>
+
+#include "../libs/ft_printf/includes/ft_printf.h"
 
 int		ft_isalpha(int c);
 int		ft_isalnum(int c);
@@ -68,5 +69,3 @@ void	ft_lstdelone(t_list *lst, void (*del)(void*));
 void	ft_lstclear(t_list **lst, void (*del)(void*));
 void	ft_lstiter(t_list *lst, void (*f)(void *));
 t_list	*ft_lstmap(t_list *lst, void *(*f)(void *), void (*del)(void *));
-
-#endif

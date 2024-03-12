@@ -6,7 +6,7 @@
 #    By: ulayus <marvin@42.fr>                      +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2022/09/30 11:40:22 by ulayus            #+#    #+#              #
-#    Updated: 2024/03/07 13:27:24 by ulayus           ###   ########.fr        #
+#    Updated: 2024/03/12 11:53:26 by ulayus           ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -17,35 +17,41 @@ endif
 NAME := libft_malloc_$(HOSTTYPE).so
 SHORT_NAME := libft_malloc.so
 
-SRCS := sum.c
+SRCS := malloc.c\
+		init.c\
+		info.c
 
-HDR_DIR := includes/
-HDR := sum.h
-HDR := $(addprefix $(HDR_DIR), $(HDR))
+LIBFT_DIR := libs/libft/
 
 CC := gcc
 
-CFLAGS := -Wall -Wextra -Werror
+CFLAGS := -Wall -Wextra -Werror -g
+LIBS := -Llibs/libft -lft #-Llibs/libft/libs/ft_printf -lft_printf
 
 OBJS := $(addprefix objs/, $(SRCS:.c=.o))
 
 all: $(NAME) 
 
 $(NAME): $(OBJS)
-	@make -s -C ./libs/libft --no-print-directory
-	gcc $(OBJS) -shared -o $(NAME)
+	make -s -C $(LIBFT_DIR) --no-print-directory
+	$(CC) $(OBJS) -shared -o $(NAME) $(LIBS)
 	ln -sf $(NAME) $(SHORT_NAME)
+	echo "$(NAME) compiled"
 
-objs/%.o: srcs/%.c $(HDR)
-	@mkdir -p $(@D)
+objs/%.o: srcs/%.c
+	mkdir -p $(@D)
 	$(CC) $(CFLAGS) -c $< -fPIC -o $@
 
 clean:
 	rm -rf objs
+	echo "$(NAME) objects removed"
 
 fclean: clean
 	rm -f $(NAME) $(SHORT_NAME)
+	echo "$(NAME) binary removed"
+	make fclean -C $(LIBFT_DIR) --no-print-directory
 
 re: fclean all
 
 .PHONY: all clean fclean re bonus
+.SILENT:
