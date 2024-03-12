@@ -6,6 +6,8 @@
 #include <stdio.h>
 #include <sys/mman.h>
 
+#include "../libs/libft/includes/libft.h"
+
 #define NB_BLOCKS_INIT 32
 #define PAGES_TINY 4
 #define PAGES_SMALL 16
@@ -25,9 +27,9 @@ typedef struct Block {
 
 typedef struct Zone {
 	struct Zone *next;
-	Block *head;
 	block_type_t type;
 	size_t nb_pages;
+	Block *head;
 } Zone;
 
 extern Zone *zones;

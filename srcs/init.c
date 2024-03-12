@@ -1,4 +1,5 @@
 #include "../includes/malloc.h"
+#include <stdint.h>
 #include <unistd.h>
 
 Zone *zones;
@@ -7,8 +8,12 @@ static void init_blocks(Zone *zone, size_t nb_blocks, size_t block_size)
 {
 	zone->head = (Block *)(zone + sizeof(Zone));
 	Block *iter = zone->head;
-	for (size_t i = 0; i < nb_blocks; ++i) {
-		iter->next = (Block *)(iter + block_size);
+	while ((uintptr_t)iter + block_size < (uintptr_t)zone + nb_blocks * block_size) {
+		printf("zone %p - iter %p - block_size %ld\n", zone, iter, block_size / 32);
+		iter->next = iter + (block_size / 32);
+		iter->next->size = (block_size / 32) - sizeof(Block);
+		iter->next->in_use = false;
+		printf("zone %p - iter next %p - block_size %ld\n", zone, iter->next, block_size / 32);
 		iter = iter->next;
 	}
 }
@@ -33,9 +38,10 @@ int init_allocator(void)
 								PROT_READ | PROT_WRITE,
 								MAP_ANONYMOUS | MAP_PRIVATE, -1, 0);
 	if (tiny == NULL) {
-		perror("error on syscall mmap");
+		ft_dprintf(2, "error on syscall mmap\n");
 		return (-1);
 	}
+	zones = tiny;
 	tiny->nb_pages = PAGES_TINY * NB_BLOCKS_INIT;
 	tiny->type = TINY;
 	init_blocks(tiny, NB_BLOCKS_INIT, tiny_size);
@@ -45,7 +51,7 @@ int init_allocator(void)
 								PROT_READ | PROT_WRITE,
 								MAP_ANONYMOUS | MAP_PRIVATE, -1, 0);
 	if (small == NULL) {
-		perror("error on syscall mmap");
+		ft_dprintf(2, "error on syscall mmap\n");
 		return (-1);
 	}
 	tiny->next = small;
