@@ -10,7 +10,7 @@
 
 // BPZ = Blocks Per Zone, which is the number
 // of blocks allocated for a new zone
-enum { BPZ = 128, PAGES_TINY = 4, PAGES_SMALL = 16 };
+enum { BPZ = 32, PAGES_TINY = 4, PAGES_SMALL = 16 };
 
 /* Linked list to store all the zones (pages) mapped.
  * The attribute type is either TINY, SMALL or LARGE.
@@ -40,8 +40,9 @@ typedef struct Zones {
 
 extern Zones *zones;
 
-block_type_t find_type(size_t size);
-Zone *get_zone(size_t size);
+block_type_t get_type(size_t size);
+Zone *get_zone(block_type_t type);
+size_t get_max_size(block_type_t type);
 void add_blocks(Zone *zone, size_t nb_blocks, size_t block_size);
 int add_zone(block_type_t type, size_t size);
 

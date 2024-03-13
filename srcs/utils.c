@@ -1,6 +1,6 @@
 #include "../includes/malloc.h"
 
-block_type_t find_type(size_t size)
+block_type_t get_type(size_t size)
 {
 	if (size <= (size_t)PAGES_TINY * getpagesize() - sizeof(Block))
 		return (TINY);
@@ -9,14 +9,22 @@ block_type_t find_type(size_t size)
 	return (LARGE);
 }
 
-Zone *get_zone(size_t size)
+Zone *get_zone(block_type_t type)
 {
-	block_type_t type = find_type(size);
 	if (type == TINY)
 		return (zones->tiny);
 	if (type == SMALL)
 		return (zones->small);
 	return (zones->large);
+}
+
+size_t get_max_size(block_type_t type)
+{
+	if (type == TINY)
+		return (PAGES_TINY * getpagesize());
+	if (type == SMALL)
+		return (PAGES_SMALL * getpagesize());
+	return (0);
 }
 
 void add_blocks(Zone *zone, size_t nb_blocks, size_t block_size)
@@ -38,6 +46,7 @@ void add_blocks(Zone *zone, size_t nb_blocks, size_t block_size)
 
 int add_zone(block_type_t type, size_t size)
 {
+	static int count = 0;
 	Zone *zone = (Zone *)mmap(NULL, size * BPZ + sizeof(Zone),
 	                          PROT_READ | PROT_WRITE,
 	                          MAP_ANONYMOUS | MAP_PRIVATE, -1, 0);
@@ -66,8 +75,26 @@ int add_zone(block_type_t type, size_t size)
 	} else {
 		it = &zones->large;
 	}
-	while (*it)
-		*it = (*it)->next;
-	*it = zone;
+	Zone **tmp = it;
+	while (*tmp) {
+		if (type == TINY) {
+			printf("[%d.0] zone tiny inside loop %p\n", count,
+			       *tmp);
+			printf("[%d.0] new zone tiny inside loop %p\n", count,
+			       zone);
+		}
+		*tmp = (*tmp)->next;
+	}
+	*tmp = zone;
+	if (type == TINY) {
+		for (Zone *zone_it = zones->tiny; zone_it;
+		     zone_it = zone_it->next) {
+			printf("[%d.1] zone tiny %p\n", count, zone_it);
+			printf("[%d.1] zone tiny next %p\n", count,
+			       zone_it->next);
+		}
+		count++;
+	}
+
 	return (0);
 }
