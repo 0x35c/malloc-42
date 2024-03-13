@@ -11,10 +11,11 @@ int main(void)
 {
 	(void)malloc(0);
 	show_alloc_mem();
-	for (size_t i = 0; i < 256; ++i) {
-		(void)malloc(25);
+	for (size_t i = 0; i < 100; ++i) {
+		(void)malloc(256);
 	}
 	ft_dprintf(2, "Done\n");
+	(void)malloc(120);
 	show_alloc_mem();
 	return (EXIT_SUCCESS);
 }
