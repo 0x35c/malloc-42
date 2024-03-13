@@ -1,61 +1,44 @@
 #include "../includes/malloc.h"
-#include <stdint.h>
 #include <sys/mman.h>
 #include <unistd.h>
 
-/*
-static size_t offset_tiny(void) {
-	return (getpagesize() / 16);
-}
-
-static size_t offset_small(void) {
-	return (getpagesize() / 32);
-}
-
-static Zone *add_new_zone(block_type_t type)
+/* Find first available (not in_use) block
+ * in a zone matching the size we need
+ */
+static Block *find_block(block_type_t type)
 {
-	Zone *new_zone = mmap(NULL, getpagesize(), PROT_READ | PROT_WRITE,
-							MAP_ANONYMOUS | MAP_PRIVATE, -1, 0);
-	new_zone->next = NULL;
-	new_zone->type = type;
-	new_zone->available = (uint8_t *)(&new_zone + sizeof(Zone));
-	if (type == TINY) {
-		for (size_t i = 0; i < offset_tiny(); ++i)
-			new_zone->available[i] = i;
-		new_zone->data = (uint8_t *)(&new_zone + sizeof(Zone) + offset_tiny());
+	for (Zone *zone_it = zones; zone_it != NULL; zone_it = zone_it->next) {
+		if (zone_it->type == type) {
+			for (Block *block_it = zone_it->head; block_it != NULL; block_it = block_it->next) {
+				if (block_it->in_use == false)
+					return (block_it);
+			}
+		}
 	}
-	else if (type == SMALL) {
-		for (size_t i = 0; i < offset_small(); ++i)
-			new_zone->available[i] = i;
-		new_zone->data = (uint8_t *)(&new_zone + sizeof(Zone) + offset_small());
-	}
-	return (new_zone);
+	return (NULL);
 }
-
-Zone *add_pages(Zone *pages, size_t nb, block_type_t type)
-{
-	Zone *head = pages;
-	while (pages->next != NULL)
-		pages = pages->next;
-	for (size_t i = 0; i < nb; ++i) {
-		pages->next = add_new_zone(type);
-		pages = pages->next;
-	}
-	return (head);
-}
-*/
 
 void *malloc(size_t size)
 {
-	init_allocator();
-	block_type_t type;
+	// If mmap fails, the allocator won't be able to init correctly
+	if (init_allocator() == -1) {
+		ft_dprintf(2, "couldn't init allocator\n");
+		return (NULL);
+	}
 
-	if (size <= TINY)
+	block_type_t type;
+	if (size <= (size_t)PAGES_TINY * getpagesize())
 		type = TINY;	
-	else if (size <= SMALL)
+	else if (size <= (size_t)PAGES_SMALL * getpagesize())
 		type = SMALL;
 	else
 		type = LARGE;
-	return (zones);
-}
 
+	Block *available = find_block(type);
+	if (available == NULL)
+		return (NULL); // We need more zones, TODO
+	available->size = size;
+	available->in_use = true;
+	void *ptr = (void*)((size_t)available + sizeof(Block));
+	return (ptr);
+}

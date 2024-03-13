@@ -1,6 +1,6 @@
 #include "../includes/malloc.h"
 
-size_t get_nb_blocks(Block *head) {
+static size_t get_nb_blocks(Block *head) {
 	size_t size = 0;
 	for (Block *it = head; it != NULL; it = it->next) {
 		/* printf("iter addr %p\n", it); */

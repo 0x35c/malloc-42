@@ -1,6 +1,4 @@
 #include "../includes/malloc.h"
-#include <stdint.h>
-#include <unistd.h>
 
 Zone *zones;
 
