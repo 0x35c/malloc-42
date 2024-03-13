@@ -1,18 +1,19 @@
 #pragma once
-#include <stddef.h>
 #include <stdbool.h>
+#include <stddef.h>
 #include <stdint.h>
-#include <unistd.h>
 #include <stdio.h>
+#include <sys/_types/_size_t.h>
 #include <sys/mman.h>
+#include <unistd.h>
 
 #include "../libs/libft/includes/libft.h"
 
 #define NB_BLOCKS_INIT 32
-#define PAGES_TINY 4
-#define PAGES_SMALL 16
+#define PAGES_TINY     4
+#define PAGES_SMALL    16
 
-/* Linked list to store all the zones (pages) mapped. 
+/* Linked list to store all the zones (pages) mapped.
  * The attribute type is either TINY, SMALL or LARGE.
  * For TINY and SMALL, the zone will be divided in blocks.
  * For LARGE, it will be entire page(s).
@@ -34,7 +35,8 @@ typedef struct Zone {
 
 extern Zone *zones;
 
+int init_allocator(void);
+block_type_t find_type(size_t size);
+
 void *malloc(size_t size);
 void show_alloc_mem(void);
-int init_allocator(void);
-//Zone *add_pages(Zone *pages, size_t nb, block_type_t type);

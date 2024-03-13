@@ -6,7 +6,7 @@
 #    By: ulayus <marvin@42.fr>                      +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2022/09/30 11:40:22 by ulayus            #+#    #+#              #
-#    Updated: 2024/03/12 12:14:49 by ulayus           ###   ########.fr        #
+#    Updated: 2024/03/13 13:43:31 by ulayus           ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -18,6 +18,8 @@ NAME := libft_malloc_$(HOSTTYPE).so
 SHORT_NAME := libft_malloc.so
 
 SRCS := malloc.c\
+		free.c\
+		utils.c\
 		init.c\
 		info.c
 
