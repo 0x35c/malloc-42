@@ -3,15 +3,12 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
-#include <sys/_types/_size_t.h>
 #include <sys/mman.h>
 #include <unistd.h>
 
 #include "../libs/libft/includes/libft.h"
 
-#define NB_BLOCKS_INIT 32
-#define PAGES_TINY     4
-#define PAGES_SMALL    16
+enum { NB_BLOCKS_INIT = 32, PAGES_TINY = 4, PAGES_SMALL = 16 };
 
 /* Linked list to store all the zones (pages) mapped.
  * The attribute type is either TINY, SMALL or LARGE.
