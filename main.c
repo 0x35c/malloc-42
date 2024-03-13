@@ -9,13 +9,13 @@
 
 int main(void)
 {
-	(void)malloc(0);
-	show_alloc_mem();
+	/* (void)malloc(0); */
+	/* show_alloc_mem(); */
 	for (size_t i = 0; i < 100; ++i) {
 		(void)malloc(256);
 	}
-	ft_dprintf(2, "Done\n");
-	(void)malloc(120);
+	(void)malloc(94);
+	(void)malloc(30000);
 	show_alloc_mem();
 	return (EXIT_SUCCESS);
 }

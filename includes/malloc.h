@@ -8,7 +8,9 @@
 
 #include "../libs/libft/includes/libft.h"
 
-enum { NB_BLOCKS_INIT = 32, PAGES_TINY = 4, PAGES_SMALL = 16 };
+// BPZ = Blocks Per Zone, which is the number
+// of blocks allocated for a new zone
+enum { BPZ = 128, PAGES_TINY = 4, PAGES_SMALL = 16 };
 
 /* Linked list to store all the zones (pages) mapped.
  * The attribute type is either TINY, SMALL or LARGE.
@@ -30,10 +32,20 @@ typedef struct Zone {
 	Block *head;
 } Zone;
 
-extern Zone *zones;
+typedef struct Zones {
+	Zone *tiny;
+	Zone *small;
+	Zone *large;
+} Zones;
+
+extern Zones *zones;
+
+block_type_t find_type(size_t size);
+Zone *get_zone(size_t size);
+void add_blocks(Zone *zone, size_t nb_blocks, size_t block_size);
+int add_zone(block_type_t type, size_t size);
 
 int init_allocator(void);
-block_type_t find_type(size_t size);
 
 void *malloc(size_t size);
 void show_alloc_mem(void);

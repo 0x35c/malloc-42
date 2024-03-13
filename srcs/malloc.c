@@ -5,17 +5,13 @@
 /* Find first available (not in_use) block
  * in a zone matching the size we need
  */
-static Block *find_block(block_type_t type, size_t size)
+static Block *find_block(Zone *zone, size_t size)
 {
-	for (Zone *zone_it = zones; zone_it != NULL; zone_it = zone_it->next) {
-		if (zone_it->type == type) {
-			for (Block *block_it = zone_it->head; block_it != NULL;
-			     block_it = block_it->next) {
-				if (block_it->in_use == false &&
-				    block_it->size >= size)
-					return (block_it);
-			}
-		}
+	for (Block *block_it = zone->head; block_it != NULL;
+	     block_it = block_it->next) {
+		if (block_it->in_use == false &&
+		    block_it->size >= size + sizeof(Block))
+			return (block_it);
 	}
 	return (NULL);
 }
@@ -48,10 +44,12 @@ static void frag_block(Block *left_block, size_t left_size)
 	right_block->size = left_block->size - left_size;
 	right_block->in_use = false;
 	right_block->next = left_block->next;
+	/* if (left_size - sizeof(Block) == 120) { */
+	/* 	printf("right_block addr %p\n", right_block); */
+	/* 	printf("right_block->next addr %p\n", right_block->next); */
+	/* 	/1* printf("tmp->next addr %p\n", tmp->next); *1/ */
+	/* } */
 	left_block->next = right_block;
-	/* printf("right_block addr %p\n", right_block); */
-	/* printf("right_block->next addr %p\n", right_block->next); */
-	/* printf("tmp->next addr %p\n", tmp->next); */
 }
 
 void *malloc(size_t size)
@@ -63,13 +61,12 @@ void *malloc(size_t size)
 	}
 
 	// Find the type of zone we need to search for
-	block_type_t type = find_type(size);
+	Zone *zone = get_zone(size);
 
 	// Find an available block in a zone of type "type"
-	Block *available = find_block(type, size);
+	Block *available = find_block(zone, size);
 	if (available == NULL)
 		return (NULL); // We need more zones, TODO
-
 	frag_block(available, size + sizeof(Block));
 	available->in_use = true;
 	available->size = size;
