@@ -74,10 +74,8 @@ static void frag_block(Block *old_block, size_t size, Zone *zone)
 		zone->used = old_block;
 		return;
 	}
-	Block *end = zone->used;
-	while (end->next_used != NULL)
-		end = end->next_used;
-	end->next_used = old_block;
+	old_block->next_used = zone->used;
+	zone->used = old_block;
 	/* if (left_size - sizeof(Block) == 120) { */
 	/* 	printf("right_block addr %p\n", right_block); */
 	/* 	printf("right_block->next addr %p\n", right_block->next); */
