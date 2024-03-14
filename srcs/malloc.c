@@ -8,11 +8,14 @@
 static Block *find_block(Zone *zone, size_t size)
 {
 	for (Zone *zone_it = zone; zone_it != NULL; zone_it = zone_it->next) {
-		for (Block *block_it = zone->head; block_it != NULL;
+		/* printf("zone_it %p\n", zone_it); */
+		for (Block *block_it = zone_it->free; block_it != NULL;
 		     block_it = block_it->next) {
 			if (block_it->in_use == false &&
-			    block_it->size >= size + sizeof(Block))
+			    block_it->size >= size) {
+				/* printf("block found %p\n", block_it); */
 				return (block_it);
+			}
 		}
 	}
 	return (NULL);
@@ -38,20 +41,48 @@ static Block *find_block(Zone *zone, size_t size)
  * We can see that it now has its own metadata and available
  * data and it points towards [6]
  */
-static void frag_block(Block *left_block, size_t left_size)
+static void frag_block(Block *old_block, size_t size, Zone *zone)
 {
-	if (left_block->size - left_size < sizeof(Block))
+	if (old_block->size - size < sizeof(Block))
 		return;
-	Block *right_block = (Block *)((size_t)left_block + left_size);
-	right_block->size = left_block->size - left_size;
-	right_block->in_use = false;
-	right_block->next = left_block->next;
+
+	Block *new_block = (Block *)((size_t)old_block + size);
+	new_block->prev = old_block;
+	new_block->next = old_block->next;
+	new_block->next_used = NULL;
+	new_block->next_free = old_block->next_free;
+	new_block->size = old_block->size - size - sizeof(Block);
+	new_block->in_use = false;
+	new_block->ptr = (Block *)((size_t)new_block + sizeof(Block));
+
+	// Set the previous block to point to the newly created block
+	Block *prev = old_block->prev;
+	if (prev == NULL)
+		zone->free = new_block;
+	else
+		prev->next_free = new_block;
+
+	/* int i = 0; */
+	/* for (Block *it = zone->free; it != NULL; it = it->next_free) { */
+	/* 	printf("[%d] %p\n", i, it); */
+	/* 	i++; */
+	/* } */
+
+	old_block->next_free = NULL;
+	old_block->next = new_block;
+	if (zone->used == NULL) {
+		zone->used = old_block;
+		return;
+	}
+	Block *end = zone->used;
+	while (end->next_used != NULL)
+		end = end->next_used;
+	end->next_used = old_block;
 	/* if (left_size - sizeof(Block) == 120) { */
 	/* 	printf("right_block addr %p\n", right_block); */
 	/* 	printf("right_block->next addr %p\n", right_block->next); */
 	/* printf("tmp->next addr %p\n", tmp->next); */
 	/* } */
-	left_block->next = right_block;
 }
 
 void *malloc(size_t size)
@@ -59,6 +90,10 @@ void *malloc(size_t size)
 	// If mmap fails, the allocator won't be able to init correctly
 	if (init_allocator() == -1) {
 		ft_dprintf(2, "couldn't init allocator\n");
+		return (NULL);
+	}
+	if (size == 0) {
+		ft_dprintf(2, "can't malloc(0)\n");
 		return (NULL);
 	}
 
@@ -69,11 +104,13 @@ void *malloc(size_t size)
 	// Find an available block in a zone of type "type"
 	Block *available = find_block(zone, size);
 	if (available == NULL) {
-		add_zone(type, get_max_size(type));
+		/* printf("call to add_zone because no more mem\n"); */
+		new_zone(type, get_max_size(type));
+		/* printf("end of call to add_zone because no more mem\n"); */
 		available = find_block(zone, size);
-		printf("available %p\n", available);
+		/* printf("available %p\n", available); */
 	}
-	frag_block(available, size + sizeof(Block));
+	frag_block(available, size + sizeof(Block), zone);
 	available->in_use = true;
 	available->size = size;
 	void *ptr = (void *)((size_t)available + sizeof(Block));

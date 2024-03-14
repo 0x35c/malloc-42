@@ -19,17 +19,30 @@ enum { BPZ = 32, PAGES_TINY = 4, PAGES_SMALL = 16 };
  */
 typedef enum { TINY, SMALL, LARGE } block_type_t;
 
+/* next and prev will never change, it's its
+ * position initialized when creating the blocks
+ * next_used: the next in_use block
+ * ptr: the ptr to return with malloc
+ */
 typedef struct Block {
-	struct Block *next;
+	void *ptr;
 	size_t size;
 	bool in_use;
+	struct Block *next;
+	struct Block *prev;
+	struct Block *next_used;
+	struct Block *next_free;
 } Block;
 
+/* free is the first list, when creating the blocks
+ * used is a list at the end of the free list, which contains
+ * all the blocks in_use
+ */
 typedef struct Zone {
 	struct Zone *next;
 	block_type_t type;
-	size_t nb_pages;
-	Block *head;
+	Block *free;
+	Block *used;
 } Zone;
 
 typedef struct Zones {
@@ -44,7 +57,7 @@ block_type_t get_type(size_t size);
 Zone *get_zone(block_type_t type);
 size_t get_max_size(block_type_t type);
 void add_blocks(Zone *zone, size_t nb_blocks, size_t block_size);
-int add_zone(block_type_t type, size_t size);
+int new_zone(block_type_t type, size_t size);
 
 int init_allocator(void);
 

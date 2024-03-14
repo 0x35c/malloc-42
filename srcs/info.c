@@ -19,6 +19,7 @@ static bool zone_in_use(Block *head)
 	for (Block *it = head; it != NULL; it = it->next)
 		if (it->in_use)
 			return (true);
+	printf("Zone not in use\n");
 	return (false);
 }
 
@@ -30,15 +31,16 @@ void show_alloc_mem(void)
 	for (block_type_t type = 0; type < 3; ++type) {
 		for (Zone *zone_it = zones_map[type]; zone_it != NULL;
 		     zone_it = zone_it->next) {
-			if (zone_in_use(zone_it->head) == false)
-				continue;
+			(void)zone_in_use(zone_it->used);
+			/* if (zone_in_use(zone_it->used) == false) */
+			/* 	continue; */
 #if FULL_INFO
 			ft_printf("%s : %p with %u blocks\n", zones_name[type],
-			          zone_it, get_nb_blocks(zone_it->head));
+			          zone_it, get_nb_blocks(zone_it->used));
 #else
-			ft_printf("%s : %p\n", tiny_it);
+			ft_printf("%s : %p\n", zones_name[type], zone_it);
 #endif
-			for (Block *block_it = zone_it->head; block_it != NULL;
+			for (Block *block_it = zone_it->free; block_it != NULL;
 			     block_it = block_it->next) {
 				ft_printf("%p - %p : %u bytes", block_it,
 				          (size_t)block_it + block_it->size,

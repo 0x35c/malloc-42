@@ -6,7 +6,7 @@
 #    By: ulayus <marvin@42.fr>                      +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2022/09/30 11:40:22 by ulayus            #+#    #+#              #
-#    Updated: 2024/03/13 13:43:31 by ulayus           ###   ########.fr        #
+#    Updated: 2024/03/14 13:51:10 by ulayus           ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -27,7 +27,7 @@ LIBFT_DIR := libs/libft/
 
 CC := gcc
 
-CFLAGS := -Wall -Wextra -Werror -g -std=c99
+CFLAGS := -Wall -Wextra -Werror -g -std=c99 -O3
 LIBS := -Llibs/libft -lft -Llibs/libft/libs/ft_printf -lft_printf
 
 OBJS := $(addprefix objs/, $(SRCS:.c=.o))
