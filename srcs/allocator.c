@@ -9,7 +9,9 @@ static void add_blocks(Zone *zone, size_t nb_blocks, size_t block_size)
 	Block *iter = zone->free;
 	Block *prev = NULL;
 	do {
-		iter->ptr = (Block *)((size_t)iter + sizeof(Block));
+		iter->ptr =
+		    (Block *)(((size_t)iter + sizeof(Block) + MEM_ALIGN - 1) &
+		              ~(MEM_ALIGN));
 		iter->size = block_size - sizeof(Block);
 		iter->in_use = false;
 		iter->prev = prev;

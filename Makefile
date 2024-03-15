@@ -6,7 +6,7 @@
 #    By: ulayus <marvin@42.fr>                      +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2022/09/30 11:40:22 by ulayus            #+#    #+#              #
-#    Updated: 2024/03/15 12:47:14 by ulayus           ###   ########.fr        #
+#    Updated: 2024/03/15 13:37:44 by ulayus           ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -56,4 +56,4 @@ fclean: clean
 re: fclean all
 
 .PHONY: all clean fclean re bonus
-.SILENT:
+.SILENT: 

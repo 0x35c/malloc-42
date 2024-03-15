@@ -51,7 +51,9 @@ static void frag_block(Block *old_block, size_t size, Zone *zone)
 	new_block->next_free = old_block->next_free;
 	new_block->size = old_block->size - size - sizeof(Block);
 	new_block->in_use = false;
-	new_block->ptr = (Block *)((size_t)new_block + sizeof(Block));
+	new_block->ptr =
+	    (Block *)(((size_t)new_block + sizeof(Block) + MEM_ALIGN - 1) &
+	              ~(MEM_ALIGN));
 
 	// Set the previous block to point to the newly created block
 	Block *prev = old_block->prev;

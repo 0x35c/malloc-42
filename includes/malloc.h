@@ -11,7 +11,7 @@
 
 // BPZ = Blocks Per Zone, which is the number
 // of blocks allocated for a new zone
-enum { BPZ = 32, PAGES_TINY = 4, PAGES_SMALL = 16 };
+enum { BPZ = 32, PAGES_TINY = 4, PAGES_SMALL = 16, MEM_ALIGN = 16 };
 
 /* Linked list to store all the zones (pages) mapped.
  * The attribute type is either TINY, SMALL or LARGE.

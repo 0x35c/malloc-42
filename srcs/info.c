@@ -42,8 +42,9 @@ void show_alloc_mem(void)
 #endif
 			for (Block *block_it = zone_it->free; block_it != NULL;
 			     block_it = block_it->next) {
-				ft_printf("%p - %p : %u bytes", block_it,
-				          (size_t)block_it + block_it->size,
+				ft_printf("%p - %p : %u bytes", block_it->ptr,
+				          (size_t)block_it->ptr +
+				              block_it->size,
 				          block_it->size);
 #if FULL_INFO
 				if (block_it->in_use == false)
