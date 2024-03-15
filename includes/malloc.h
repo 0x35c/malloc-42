@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <sys/mman.h>
+#include <sys/resource.h>
 #include <unistd.h>
 
 #include "../libs/libft/includes/libft.h"
