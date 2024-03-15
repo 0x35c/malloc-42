@@ -19,6 +19,7 @@ static Block *find_block(Zone *zone, size_t size)
 	return (NULL);
 }
 
+/* DEPRECATED */
 /* This will split the newly allocated block to use
  * the remaining bytes for a new block
  * This is our linked list of blocks
@@ -88,14 +89,15 @@ void *malloc(size_t size)
 		return (NULL);
 	}
 
-	// Find the type of zone we need to search for
+	// Find the zone we need to search
 	block_type_t type = get_type(size);
 	Zone *zone = get_zone(type);
 
 	// Find an available block in a zone of type "type"
 	Block *available = find_block(zone, size);
 	if (available == NULL) {
-		new_zone(type, get_max_size(type));
+		if (new_zone(type, get_max_size(type)) == -1)
+			return (NULL);
 		available = find_block(zone, size);
 	}
 	frag_block(available, size + sizeof(Block), zone);
