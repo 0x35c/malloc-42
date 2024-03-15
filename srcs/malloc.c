@@ -10,8 +10,7 @@ static Block *find_block(Zone *zone, size_t size)
 	for (Zone *zone_it = zone; zone_it != NULL; zone_it = zone_it->next) {
 		for (Block *block_it = zone_it->free; block_it != NULL;
 		     block_it = block_it->next) {
-			if (block_it->in_use == false &&
-			    block_it->size >= size) {
+			if (!block_it->in_use && block_it->size >= size) {
 				return (block_it);
 			}
 		}
