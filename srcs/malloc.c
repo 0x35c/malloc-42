@@ -104,6 +104,5 @@ void *malloc(size_t size)
 	frag_block(available, size + sizeof(Block), zone);
 	available->in_use = true;
 	available->size = size;
-	void *ptr = (void *)((size_t)available + sizeof(Block));
-	return (ptr);
+	return (available->ptr);
 }
