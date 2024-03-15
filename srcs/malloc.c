@@ -8,12 +8,10 @@
 static Block *find_block(Zone *zone, size_t size)
 {
 	for (Zone *zone_it = zone; zone_it != NULL; zone_it = zone_it->next) {
-		/* printf("zone_it %p\n", zone_it); */
 		for (Block *block_it = zone_it->free; block_it != NULL;
 		     block_it = block_it->next) {
 			if (block_it->in_use == false &&
 			    block_it->size >= size) {
-				/* printf("block found %p\n", block_it); */
 				return (block_it);
 			}
 		}
@@ -76,11 +74,6 @@ static void frag_block(Block *old_block, size_t size, Zone *zone)
 	}
 	old_block->next_used = zone->used;
 	zone->used = old_block;
-	/* if (left_size - sizeof(Block) == 120) { */
-	/* 	printf("right_block addr %p\n", right_block); */
-	/* 	printf("right_block->next addr %p\n", right_block->next); */
-	/* printf("tmp->next addr %p\n", tmp->next); */
-	/* } */
 }
 
 void *malloc(size_t size)
@@ -102,11 +95,8 @@ void *malloc(size_t size)
 	// Find an available block in a zone of type "type"
 	Block *available = find_block(zone, size);
 	if (available == NULL) {
-		/* printf("call to add_zone because no more mem\n"); */
 		new_zone(type, get_max_size(type));
-		/* printf("end of call to add_zone because no more mem\n"); */
 		available = find_block(zone, size);
-		/* printf("available %p\n", available); */
 	}
 	frag_block(available, size + sizeof(Block), zone);
 	available->in_use = true;

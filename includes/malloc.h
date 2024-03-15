@@ -53,16 +53,19 @@ typedef struct Zones {
 
 extern Zones *zones;
 
+/*-------- UTILS --------*/
 block_type_t get_type(size_t size);
 Zone *get_zone(block_type_t type);
 size_t get_max_size(block_type_t type);
-void add_blocks(Zone *zone, size_t nb_blocks, size_t block_size);
-int new_zone(block_type_t type, size_t size);
+/* --------------------- */
 
+/*--------  ALLOCATOR --------*/
+int new_zone(block_type_t type, size_t block_size);
 int init_allocator(void);
 
 // CRINGE BOZO NATHAN
 int getpagesize(void);
 
+// Lib functions
 void *malloc(size_t size);
 void show_alloc_mem(void);

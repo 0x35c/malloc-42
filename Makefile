@@ -6,7 +6,7 @@
 #    By: ulayus <marvin@42.fr>                      +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2022/09/30 11:40:22 by ulayus            #+#    #+#              #
-#    Updated: 2024/03/14 13:51:10 by ulayus           ###   ########.fr        #
+#    Updated: 2024/03/15 11:49:11 by ulayus           ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -19,9 +19,9 @@ SHORT_NAME := libft_malloc.so
 
 SRCS := malloc.c\
 		free.c\
-		utils.c\
-		init.c\
-		info.c
+		allocator.c\
+		info.c\
+		utils.c
 
 LIBFT_DIR := libs/libft/
 
