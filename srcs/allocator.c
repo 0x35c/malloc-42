@@ -4,25 +4,30 @@ Zones *zones;
 
 static void add_blocks(Zone *zone, size_t nb_blocks, size_t block_size)
 {
+	// Total size of the zone, to make sure we do not assign an address
+	// after the actual zone we have
 	const size_t zone_size = (size_t)zone + nb_blocks * block_size;
-	zone->free = (Block *)((size_t)zone + sizeof(Zone));
-	Block *iter = zone->free;
+	Block *iter = (Block *)((size_t)zone + sizeof(Zone));
+	zone->free = iter;
 	Block *prev = NULL;
 	do {
+		// Metadata
 		iter->ptr =
 		    (Block *)(((size_t)iter + sizeof(Block) + MEM_ALIGN - 1) &
 		              ~(MEM_ALIGN));
 		iter->size = block_size - sizeof(Block);
 		iter->in_use = false;
-		iter->prev = prev;
+
+		// State-related (here, the block is available so it's in the
+		// zone.free linked list)
 		iter->next = (Block *)((size_t)iter + block_size);
-		iter->next_used = NULL;
 		iter->next_free = iter->next;
+		iter->next_used = NULL;
+		iter->prev = prev;
+
 		prev = iter;
 		iter = iter->next;
 	} while ((size_t)iter + block_size <= zone_size);
-	prev = (Block *)((size_t)iter - block_size);
-	prev->next = NULL;
 	iter->next = NULL;
 }
 
@@ -42,6 +47,7 @@ static void append_zone(Zone *new_zone, block_type_t type)
 		return;
 	}
 
+	// Else, we put the zone at the end
 	Zone *it = *begin;
 	while (it->next)
 		it = it->next;
@@ -69,9 +75,10 @@ int new_zone(block_type_t type, size_t block_size)
 	}
 	zone->type = type;
 	zone->used = NULL;
-	add_blocks(zone, BPZ, block_size);
+	zone->free = NULL;
 	zone->next = NULL;
 
+	add_blocks(zone, BPZ, block_size);
 	append_zone(zone, type);
 
 	return (0);
@@ -92,11 +99,12 @@ int init_allocator(void)
 	zones->tiny = NULL;
 	zones->small = NULL;
 	zones->large = NULL;
-	err = new_zone(TINY, getpagesize() * PAGES_TINY);
+
+	err = new_zone(TINY, get_max_size(TINY) + sizeof(Block));
 	if (err < 0)
 		return (err);
-	err = new_zone(SMALL, getpagesize() * PAGES_SMALL);
-	if (err < 0)
-		return (err);
+	/* err = new_zone(SMALL, get_max_size(SMALL) + sizeof(Block)); */
+	/* if (err < 0) */
+	/* 	return (err); */
 	return (0);
 }

@@ -9,16 +9,20 @@ static Block *find_block(Zone *zone, size_t size)
 {
 	for (Zone *zone_it = zone; zone_it != NULL; zone_it = zone_it->next) {
 		for (Block *block_it = zone_it->free; block_it != NULL;
-		     block_it = block_it->next) {
+		     block_it = block_it->next_free) {
 			if (!block_it->in_use && block_it->size >= size) {
 				return (block_it);
+			} else {
+				if (!block_it->in_use) {
+					/* printf("owno\n"); */
+				}
 			}
 		}
 	}
 	return (NULL);
 }
 
-/* DEPRECATED */
+/* PARTIALLY DEPRECATED */
 /* This will split the newly allocated block to use
  * the remaining bytes for a new block
  * This is our linked list of blocks
@@ -45,8 +49,11 @@ static void frag_block(Block *old_block, size_t size, Zone *zone)
 		return;
 
 	Block *new_block = (Block *)((size_t)old_block + size);
+
 	new_block->prev = old_block;
 	new_block->next = old_block->next;
+	old_block->next = new_block;
+
 	new_block->next_used = NULL;
 	new_block->next_free = old_block->next_free;
 	new_block->size = old_block->size - size - sizeof(Block);
@@ -55,12 +62,7 @@ static void frag_block(Block *old_block, size_t size, Zone *zone)
 	    (Block *)(((size_t)new_block + sizeof(Block) + MEM_ALIGN - 1) &
 	              ~(MEM_ALIGN));
 
-	// Set the previous block to point to the newly created block
-	Block *prev = old_block->prev;
-	if (prev == NULL)
-		zone->free = new_block;
-	else
-		prev->next_free = new_block;
+	zone->free = new_block;
 
 	/* int i = 0; */
 	/* for (Block *it = zone->free; it != NULL; it = it->next_free) { */
@@ -69,7 +71,6 @@ static void frag_block(Block *old_block, size_t size, Zone *zone)
 	/* } */
 
 	old_block->next_free = NULL;
-	old_block->next = new_block;
 	if (zone->used == NULL) {
 		zone->used = old_block;
 		return;
@@ -97,7 +98,12 @@ void *malloc(size_t size)
 	// Find an available block in a zone of type "type"
 	Block *available = find_block(zone, size);
 	if (available == NULL) {
-		if (new_zone(type, get_max_size(type)) == -1)
+		size_t full_size;
+		if (type == LARGE)
+			full_size = size + sizeof(Block);
+		else
+			full_size = get_max_size(type) + sizeof(Block);
+		if (new_zone(type, full_size) == -1)
 			return (NULL);
 		available = find_block(zone, size);
 	}

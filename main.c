@@ -2,12 +2,13 @@
 
 int main(void)
 {
-	/* while (1) { */
-	/* 	if (malloc(30000) == NULL) */
-	/* 		return (EXIT_FAILURE); */
-	/* } */
-	for (size_t i = 0; i < 10; ++i) {
-		printf("[%ld] %p\n", i, malloc(256));
+	for (size_t i = 0; i < 1000000; ++i) {
+		(void)malloc(256);
 	}
+	/* show_alloc_mem(); */
+	/* for (size_t i = 0; i < 100; ++i) { */
+	/* 	printf("[%ld] %p\n", i, malloc(256)); */
+	/* } */
+	/* show_alloc_mem(); */
 	return (EXIT_SUCCESS);
 }

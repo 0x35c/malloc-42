@@ -2,9 +2,9 @@
 
 block_type_t get_type(size_t size)
 {
-	if (size <= (size_t)PAGES_TINY * getpagesize() - sizeof(Block))
+	if (size <= get_max_size(TINY))
 		return (TINY);
-	if (size <= (size_t)PAGES_SMALL * getpagesize() - sizeof(Block))
+	if (size <= get_max_size(SMALL))
 		return (SMALL);
 	return (LARGE);
 }
@@ -15,14 +15,14 @@ Zone *get_zone(block_type_t type)
 		return (zones->tiny);
 	if (type == SMALL)
 		return (zones->small);
-	return (zones->large);
+	return (NULL);
 }
 
 size_t get_max_size(block_type_t type)
 {
 	if (type == TINY)
-		return (PAGES_TINY * getpagesize());
+		return (PAGES_TINY * getpagesize() - sizeof(Block));
 	if (type == SMALL)
-		return (PAGES_SMALL * getpagesize());
+		return (PAGES_SMALL * getpagesize() - sizeof(Block));
 	return (0);
 }
