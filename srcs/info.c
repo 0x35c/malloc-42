@@ -16,7 +16,7 @@
 
 void show_alloc_mem(void)
 {
-	init_allocator();
+	/* init_allocator(); */
 	Zone *const zones_map[3] = {zones->tiny, zones->small, zones->large};
 	char *const zones_name[3] = {"TINY", "SMALL", "LARGE"};
 
@@ -51,8 +51,8 @@ void show_alloc_mem(void)
 			/* #endif */
 			/* } */
 #if FULL_INFO
-			printf("---------- AVAILABLE %s ----------\n",
-			       zones_name[type]);
+			ft_printf("---------- AVAILABLE %s ----------\n",
+			          zones_name[type]);
 			for (Block *block_it = zone_it->free; block_it != NULL;
 			     block_it = block_it->next_free) {
 				ft_printf("%p - %p : %u bytes", block_it->ptr,
@@ -67,8 +67,8 @@ void show_alloc_mem(void)
 					ft_printf("\n");
 			}
 #endif
-			printf("---------- IN USE %s ----------\n",
-			       zones_name[type]);
+			ft_printf("---------- IN USE %s ----------\n",
+			          zones_name[type]);
 			for (Block *block_it = zone_it->used; block_it != NULL;
 			     block_it = block_it->next_used) {
 				ft_printf("%p - %p : %u bytes\n", block_it->ptr,

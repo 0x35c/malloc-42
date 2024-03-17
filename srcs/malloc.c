@@ -7,10 +7,21 @@
  */
 static Block *find_block(Zone *zone, size_t size)
 {
+	block_type_t type = get_type(size);
+	printf("trying to find block in zone %p - zone->next %p\n", zone,
+	       zone->next);
+
 	for (Zone *zone_it = zone; zone_it != NULL; zone_it = zone_it->next) {
 		for (Block *block_it = zone_it->free; block_it != NULL;
 		     block_it = block_it->next_free) {
-			if (!block_it->in_use && block_it->size >= size) {
+			printf("BLOCK [%p] -- searching block with "
+			       "block_it->size: %ld - "
+			       "block_it->size %% get_max_size(): %ld\n",
+			       block_it, block_it->size,
+			       block_it->size % get_max_size(type));
+			if (!block_it->in_use &&
+			    block_it->size % get_max_size(type) >= size) {
+				printf("block found: %p\n", block_it);
 				return (block_it);
 			} else {
 				if (!block_it->in_use) {
@@ -48,19 +59,25 @@ static void frag_block(Block *old_block, size_t size, Zone *zone)
 	if (old_block->size - size < sizeof(Block))
 		return;
 
+	Block *left = old_block->prev_free;
+	Block *right = old_block->next_free;
 	Block *new_block = (Block *)((size_t)old_block + size);
+
+	new_block->size = old_block->size - size - sizeof(Block);
+	new_block->in_use = false;
+	new_block->ptr =
+	    (Block *)(((size_t)new_block + sizeof(Block) + MEM_ALIGN) &
+	              ~(MEM_ALIGN));
 
 	new_block->prev = old_block;
 	new_block->next = old_block->next;
 	old_block->next = new_block;
 
+	new_block->prev_used = NULL;
 	new_block->next_used = NULL;
-	new_block->next_free = old_block->next_free;
-	new_block->size = old_block->size - size - sizeof(Block);
-	new_block->in_use = false;
-	new_block->ptr =
-	    (Block *)(((size_t)new_block + sizeof(Block) + MEM_ALIGN - 1) &
-	              ~(MEM_ALIGN));
+
+	new_block->prev_free = left;
+	new_block->next_free = right;
 
 	zone->free = new_block;
 
@@ -81,11 +98,13 @@ static void frag_block(Block *old_block, size_t size, Zone *zone)
 
 void *malloc(size_t size)
 {
+	printf("before\n");
 	// If mmap fails, the allocator won't be able to init correctly
 	if (init_allocator() == -1) {
 		ft_dprintf(2, "couldn't init allocator\n");
 		return (NULL);
 	}
+	printf("after\n");
 	if (size == 0) {
 		ft_dprintf(2, "can't malloc(0)\n");
 		return (NULL);
@@ -96,14 +115,15 @@ void *malloc(size_t size)
 	Zone *zone = get_zone(type);
 
 	// Find an available block in a zone of type "type"
+	printf("searching block in malloc\n");
 	Block *available = find_block(zone, size);
 	if (available == NULL) {
 		size_t full_size;
 		if (type == LARGE)
 			full_size = size + sizeof(Block);
 		else
-			full_size = get_max_size(type) + sizeof(Block);
-		if (new_zone(type, full_size) == -1)
+			full_size = get_zone_size(type);
+		if (new_zones(type, full_size, 1) == -1)
 			return (NULL);
 		available = find_block(zone, size);
 	}

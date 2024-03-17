@@ -27,7 +27,7 @@ LIBFT_DIR := libs/libft/
 
 CC := gcc
 
-CFLAGS := -Wall -Wextra -Werror -std=c99 -O3
+CFLAGS := -Wall -Wextra -Werror -std=c99 -O3 -g
 LIBS := -Llibs/libft -lft -Llibs/libft/libs/ft_printf -lft_printf
 
 OBJS := $(addprefix objs/, $(SRCS:.c=.o))
@@ -54,6 +54,9 @@ fclean: clean
 	make fclean -C $(LIBFT_DIR) --no-print-directory
 
 re: fclean all
+
+run:
+	time ./a.out
 
 .PHONY: all clean fclean re bonus
 .SILENT: 
