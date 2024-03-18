@@ -2,3 +2,5 @@
 objs/
 *.a
 *.out*
+vgcore*
+perf*

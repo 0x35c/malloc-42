@@ -106,7 +106,7 @@ int new_zones(block_type_t type, size_t zone_size, size_t nb_zones)
 	Zone *prev = NULL;
 	for (size_t count = 0; count < nb_zones; ++count) {
 		new_zone = (Zone *)((size_t)new_zone + zone_size);
-		if (count > 0 && count + 1 < nb_zones)
+		if (count > 0 && count < nb_zones)
 			prev->next = new_zone;
 		prev = new_zone;
 		new_zone->type = type;
@@ -115,16 +115,20 @@ int new_zones(block_type_t type, size_t zone_size, size_t nb_zones)
 		new_block(new_zone, zone_size);
 	}
 
-	append_list(new_zone, type);
+	append_list(heap, type);
 
-	printf("zones->tiny->free: %p\n", zones->tiny->free);
+	/* Zone *it = zones->tiny; */
+	/* int count = 0; */
+	/* while (it->next) { */
+	/* 	printf("[%d]:  %p\n", count++, it); */
+	/* 	it = it->next; */
+	/* } */
 
 	return (0);
 }
 
 int init_allocator(void)
 {
-	ft_printf("init_allocator()\n");
 	static bool initialized = false;
 	if (initialized)
 		return (0);

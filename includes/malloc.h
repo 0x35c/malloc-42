@@ -77,5 +77,5 @@ int init_allocator(void);
 int getpagesize(void);
 
 // Lib functions
-void *malloc(size_t size);
+void *ft_malloc(size_t size);
 void show_alloc_mem(void);

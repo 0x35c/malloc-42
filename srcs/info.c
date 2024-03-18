@@ -16,11 +16,12 @@
 
 void show_alloc_mem(void)
 {
-	/* init_allocator(); */
+	init_allocator();
 	Zone *const zones_map[3] = {zones->tiny, zones->small, zones->large};
 	char *const zones_name[3] = {"TINY", "SMALL", "LARGE"};
 
 	for (block_type_t type = 0; type < 1; ++type) {
+		int count = 0;
 		for (Zone *zone_it = zones_map[type]; zone_it != NULL;
 		     zone_it = zone_it->next) {
 			/* #if FULL_INFO */
@@ -51,8 +52,10 @@ void show_alloc_mem(void)
 			/* #endif */
 			/* } */
 #if FULL_INFO
-			ft_printf("---------- AVAILABLE %s ----------\n",
-			          zones_name[type]);
+			if (zone_it->free)
+				ft_printf(
+				    "---------- AVAILABLE %s [%d] ----------\n",
+				    zones_name[type], count);
 			for (Block *block_it = zone_it->free; block_it != NULL;
 			     block_it = block_it->next_free) {
 				ft_printf("%p - %p : %u bytes", block_it->ptr,
@@ -67,8 +70,10 @@ void show_alloc_mem(void)
 					ft_printf("\n");
 			}
 #endif
-			ft_printf("---------- IN USE %s ----------\n",
-			          zones_name[type]);
+			if (zone_it->used)
+				ft_printf(
+				    "---------- IN USE %s [%d] ----------\n",
+				    zones_name[type], count);
 			for (Block *block_it = zone_it->used; block_it != NULL;
 			     block_it = block_it->next_used) {
 				ft_printf("%p - %p : %u bytes\n", block_it->ptr,
@@ -76,7 +81,8 @@ void show_alloc_mem(void)
 				              block_it->size,
 				          block_it->size);
 			}
-			ft_printf("-----------------------------------\n");
+			ft_printf("\n");
+			count++;
 		}
 	}
 }
