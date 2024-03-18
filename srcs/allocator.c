@@ -3,41 +3,6 @@
 
 Zones *zones;
 
-/* static void add_blocks(Zone *zone, size_t zone_size) */
-/* { */
-/* 	ft_printf("add_blocks()\n"); */
-/* 	// Total size of the zone, to make sure we do not assign an address */
-/* 	// after the actual zone we have */
-/* 	const size_t block_size = get_max_size(zone->type) + sizeof(Block); */
-/* 	Block *iter = (Block *)((size_t)zone + sizeof(Zone)); */
-/* 	zone->free = iter; */
-/* 	Block *prev = NULL; */
-/* 	do { */
-/* 		// Metadata */
-/* 		iter->ptr = */
-/* 		    (Block *)(((size_t)iter + sizeof(Block) + MEM_ALIGN) & */
-/* 		              ~(MEM_ALIGN)); */
-/* 		iter->size = block_size - sizeof(Block); */
-/* 		iter->in_use = false; */
-
-/* 		// Base list (aligned blocks in memory) */
-/* 		iter->prev = prev; */
-/* 		iter->next = (Block *)((size_t)iter + block_size); */
-
-/* 		// Available blocks list */
-/* 		iter->prev_free = prev; */
-/* 		iter->next_free = iter->next; */
-
-/* 		// In use blocks list */
-/* 		iter->prev_used = NULL; */
-/* 		iter->next_used = NULL; */
-
-/* 		prev = iter; */
-/* 		iter = iter->next; */
-/* 	} while ((size_t)iter + block_size <= (size_t)zone + zone_size); */
-/* 	iter->next = NULL; */
-/* } */
-
 static void append_list(Zone *head, block_type_t type)
 {
 	Zone **begin;
@@ -69,6 +34,7 @@ static void new_block(Zone *zone, size_t zone_size)
 	new_block->in_use = false;
 	new_block->size = zone_size - sizeof(Zone);
 	new_block->ptr = (Block *)align_mem((size_t)new_block + sizeof(Block));
+	new_block->zone = zone;
 
 	// Init future linked lists
 	new_block->prev = NULL;
@@ -121,13 +87,6 @@ int new_zones(block_type_t type, size_t zone_size, size_t nb_zones)
 	}
 
 	append_list(heap, type);
-
-	/* Zone *it = zones->tiny; */
-	/* int count = 0; */
-	/* while (it->next) { */
-	/* 	printf("[%d]:  %p\n", count++, it); */
-	/* 	it = it->next; */
-	/* } */
 
 	return (0);
 }

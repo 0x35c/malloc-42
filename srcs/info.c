@@ -58,16 +58,14 @@ void show_alloc_mem(void)
 				    zones_name[type], count);
 			for (Block *block_it = zone_it->free; block_it != NULL;
 			     block_it = block_it->next_free) {
-				ft_printf("%p - %p : %u bytes", block_it->ptr,
-				          (size_t)block_it->ptr +
-				              block_it->size,
+				ft_printf("%p - %p : %u bytes", block_it,
+				          (size_t)block_it + block_it->size +
+				              sizeof(Block),
 				          block_it->size);
 				if (block_it->in_use == false)
 					ft_printf(" (not in_use)\n");
 				else
 					ft_printf(" (in_use)\n");
-				if (block_it->in_use == true)
-					ft_printf("\n");
 			}
 #endif
 			if (zone_it->used)
@@ -76,10 +74,14 @@ void show_alloc_mem(void)
 				    zones_name[type], count);
 			for (Block *block_it = zone_it->used; block_it != NULL;
 			     block_it = block_it->next_used) {
-				ft_printf("%p - %p : %u bytes\n", block_it->ptr,
-				          (size_t)block_it->ptr +
-				              block_it->size,
+				ft_printf("%p - %p : %u bytes", block_it,
+				          (size_t)block_it + block_it->size +
+				              sizeof(Block),
 				          block_it->size);
+				if (block_it->in_use == false)
+					ft_printf(" (not in_use)\n");
+				else
+					ft_printf(" (in_use)\n");
 			}
 			ft_printf("\n");
 			count++;

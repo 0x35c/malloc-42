@@ -35,6 +35,7 @@ typedef struct Block {
 	void *ptr;
 	size_t size;
 	bool in_use;
+	struct Zone *zone;
 	struct Block *next;
 	struct Block *prev;
 	struct Block *next_used;
