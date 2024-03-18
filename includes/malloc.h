@@ -14,8 +14,8 @@
 enum {
 	INIT_ZONES = 8,
 	BPZ = 128,
-	PAGES_TINY = 8,
-	PAGES_SMALL = 32,
+	PAGES_TINY = 16,
+	PAGES_SMALL = 64,
 	MEM_ALIGN = 8
 };
 
@@ -64,9 +64,10 @@ extern Zones *zones;
 
 /*-------- UTILS --------*/
 block_type_t get_type(size_t size);
-Zone *get_zone(block_type_t type);
+Zone *get_zone_head(block_type_t type);
 size_t get_max_size(block_type_t type);
 size_t get_zone_size(block_type_t type);
+size_t align_mem(size_t addr);
 /* --------------------- */
 
 /*--------  ALLOCATOR --------*/

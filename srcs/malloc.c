@@ -2,27 +2,41 @@
 #include <sys/mman.h>
 #include <unistd.h>
 
+/* #define DEBUG */
+
 /* Find first available (not in_use) block
  * in a zone matching the size we need
  */
-static Block *find_block(Zone *zone, size_t size)
+static Block *find_block(Zone *head, size_t size, Zone **current)
 {
-	block_type_t type = get_type(size);
+	/* block_type_t type = get_type(size); */
 	/* printf("trying to find block in zone %p - zone->next %p\n", zone, */
 	/*        zone->next); */
 
-	for (Zone *zone_it = zone; zone_it != NULL; zone_it = zone_it->next) {
+	for (Zone *zone_it = head; zone_it != NULL; zone_it = zone_it->next) {
+#ifdef DEBUG
+		printf("zone_it->free: %p\nzone_it->free->in_use: "
+		       "%d\nzone_it->free->size: %ld\n\n",
+		       zone_it->free, zone_it->free->in_use,
+		       zone_it->free->size);
+#endif
 		for (Block *block_it = zone_it->free; block_it != NULL;
 		     block_it = block_it->next_free) {
+#ifdef DEBUG
+			printf("block_it: %p\nblock_it->in_use: "
+			       "%d\nblock_it->size: %ld\n\n",
+			       block_it, block_it->in_use, block_it->size);
+#endif
 			/* printf("BLOCK [%p] -- searching block with " */
 			/*        "block_it->size: %ld - " */
 			/*        "block_it->size %% get_max_size(): %ld\n", */
 			/*        block_it, block_it->size, */
 			/*        block_it->size % get_max_size(type)); */
 			if (!block_it->in_use &&
-			    block_it->size % get_max_size(type) >= size) {
+			    size <= block_it->size - sizeof(Block)) {
 				/* printf("block found: %p\n", block_it->ptr);
 				 */
+				*current = zone_it;
 				return (block_it);
 			} else {
 				if (!block_it->in_use) {
@@ -31,6 +45,7 @@ static Block *find_block(Zone *zone, size_t size)
 			}
 		}
 	}
+	*current = NULL;
 	return (NULL);
 }
 
@@ -58,22 +73,38 @@ static Block *find_block(Zone *zone, size_t size)
 static void frag_block(Block *old_block, size_t size, Zone *zone)
 {
 	static int count = 0;
+	/* printf("[%d] frag block %p in zone %p\n", count, old_block, zone); */
+#ifdef DEBUG
 	printf("[%d] frag block %p in zone %p\n", count, old_block, zone);
-	if (old_block->size - size < sizeof(Block)) {
+	printf("old_block->size %ld\n", old_block->size);
+#endif
+	if (old_block->size < size) {
+#ifdef DEBUG
 		printf("bozo %ld\n", old_block->size);
+#endif
 		return;
 	}
 
 	Block *left = old_block->prev_free;
 	Block *right = old_block->next_free;
-	Block *new_block = (Block *)((size_t)old_block + size);
+#ifdef DEBUG
+	printf("new_block before align: %p\n",
+	       (Block *)((size_t)old_block + size));
+#endif
+	Block *new_block = (Block *)align_mem((size_t)old_block + size);
 
 	new_block->size = old_block->size - (size - sizeof(Block));
+#ifdef DEBUG
+	printf("new_block: %p - new_block->size %ld\n", new_block,
+	       new_block->size);
+#endif
 	/* new_block->size = size - sizeof(Block); */
 	new_block->in_use = false;
-	new_block->ptr =
-	    (Block *)(((size_t)new_block + sizeof(Block) + MEM_ALIGN) &
-	              ~(MEM_ALIGN));
+#ifdef DEBUG
+	printf("new_block->ptr before align: %p\n",
+	       (Block *)((size_t)new_block + sizeof(Block)));
+#endif
+	new_block->ptr = (void *)align_mem((size_t)new_block + sizeof(Block));
 
 	new_block->prev = old_block;
 	new_block->next = old_block->next;
@@ -84,17 +115,27 @@ static void frag_block(Block *old_block, size_t size, Zone *zone)
 
 	new_block->prev_free = left;
 	new_block->next_free = right;
+	old_block->next_free = NULL;
 
+#ifdef DEBUG
+	printf("zone->free before update: %p\n", zone->free);
+#endif
 	zone->free = new_block;
+#ifdef DEBUG
+	printf("zone->free after update: %p\n", zone->free);
 
 	printf("[%d] FREE\n", count);
 	int i = 0;
 	for (Block *it = zone->free; it != NULL; it = it->next_free) {
-		printf("free [%d] %p\n", i, it);
+		printf("free [%d] %p of size %ld\n", i, it, it->size);
 		i++;
 	}
+#endif
 
-	old_block->next_free = NULL;
+	// newly in_use block metadata
+	old_block->in_use = true;
+	old_block->size = size - sizeof(Block);
+
 	if (zone->used == NULL) {
 		zone->used = old_block;
 		count++;
@@ -103,12 +144,14 @@ static void frag_block(Block *old_block, size_t size, Zone *zone)
 	old_block->next_used = zone->used;
 	zone->used = old_block;
 
+#ifdef DEBUG
 	printf("[%d] USED\n", count);
 	i = 0;
 	for (Block *it = zone->used; it != NULL; it = it->next_used) {
-		printf("used [%d] %p\n", i, it);
+		printf("used [%d] %p of size %ld\n", i, it, it->size);
 		i++;
 	}
+#endif
 	count++;
 }
 
@@ -126,10 +169,11 @@ void *ft_malloc(size_t size)
 
 	// Find the zone we need to search
 	block_type_t type = get_type(size);
-	Zone *zone = get_zone(type);
+	Zone *head = get_zone_head(type);
+	Zone *zone = NULL;
 
 	// Find an available block in a zone of type "type"
-	Block *available = find_block(zone, size);
+	Block *available = find_block(head, size, &zone);
 	if (available == NULL) {
 		size_t full_size;
 		if (type == LARGE)
@@ -138,10 +182,8 @@ void *ft_malloc(size_t size)
 			full_size = get_zone_size(type);
 		if (new_zones(type, full_size, 1) == -1)
 			return (NULL);
-		available = find_block(zone, size);
+		available = find_block(head, size, &zone);
 	}
-	available->in_use = true;
-	available->size = size;
 	frag_block(available, size + sizeof(Block), zone);
 	return (available->ptr);
 }

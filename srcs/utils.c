@@ -9,7 +9,7 @@ block_type_t get_type(size_t size)
 	return (LARGE);
 }
 
-Zone *get_zone(block_type_t type)
+Zone *get_zone_head(block_type_t type)
 {
 	if (type == TINY)
 		return (zones->tiny);
@@ -34,4 +34,9 @@ size_t get_zone_size(block_type_t type)
 	if (type == SMALL)
 		return (PAGES_SMALL * getpagesize());
 	return (0);
+}
+
+size_t align_mem(size_t addr)
+{
+	return (addr + MEM_ALIGN) & ~(MEM_ALIGN);
 }

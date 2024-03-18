@@ -68,17 +68,22 @@ static void new_block(Zone *zone, size_t zone_size)
 	// Metadata
 	new_block->in_use = false;
 	new_block->size = zone_size - sizeof(Zone);
-	new_block->ptr =
-	    (Block *)(((size_t)new_block + sizeof(Block) + MEM_ALIGN) &
-	              ~(MEM_ALIGN));
+	new_block->ptr = (Block *)align_mem((size_t)new_block + sizeof(Block));
 
 	// Init future linked lists
-	new_block->next = NULL;
+	new_block->prev = NULL;
 	new_block->prev_free = NULL;
-	new_block->next_free = NULL;
 	new_block->prev_used = NULL;
+	new_block->next = NULL;
+	new_block->next_free = NULL;
 	new_block->next_used = NULL;
 
+	if (zone->free) {
+		zone->free->prev = new_block;
+		zone->free->prev_free = new_block;
+		new_block->next_free = zone->free;
+		new_block->next = zone->free;
+	}
 	zone->free = new_block;
 }
 
