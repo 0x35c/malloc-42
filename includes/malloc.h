@@ -36,10 +36,10 @@ typedef struct Block {
 	size_t size;
 	bool in_use;
 	struct Zone *zone;
-	struct Block *next;
 	struct Block *prev;
-	struct Block *next_used;
+	struct Block *next;
 	struct Block *prev_used;
+	struct Block *next_used;
 	struct Block *prev_free;
 	struct Block *next_free;
 } Block;
@@ -49,6 +49,7 @@ typedef struct Block {
  * all the blocks in_use
  */
 typedef struct Zone {
+	struct Zone *prev;
 	struct Zone *next;
 	block_type_t type;
 	Block *free;

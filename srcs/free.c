@@ -20,6 +20,34 @@ static void remove_used(Block *to_free)
 		right->prev_used = left;
 }
 
+static void unmap_zone(Zone *zone)
+{
+	Zone **head = NULL;
+	if (zone->type == TINY)
+		head = &zones->tiny;
+	else if (zone->type == SMALL)
+		head = &zones->small;
+	else
+		head = &zones->large;
+
+	Zone *left = zone->prev;
+	Zone *right = zone->next;
+	zone->next = NULL;
+	zone->prev = NULL;
+
+	if (!left && !right) {
+		*head = NULL;
+		return;
+	}
+	if (!left)
+		*head = right;
+	else
+		left->next = right;
+	if (right)
+		right->prev = left;
+	munmap(zone, get_zone_size(zone->type));
+}
+
 static Block *merge_blocks(Block *left, Block *right)
 {
 	if (right->next) {
@@ -40,11 +68,7 @@ static void add_available(Block *available)
 		zone->free = available;
 	} else if (available->size ==
 	           get_zone_size(zone->type) - sizeof(Zone)) {
-		available->next_free = NULL;
-		available->next = NULL;
-		zone->free->next_free = NULL;
-		zone->free->next = NULL;
-		zone->free = available;
+		unmap_zone(zone);
 	} else if (available != zone->free) {
 		available->next_free = zone->free;
 		zone->free->prev_free = available;

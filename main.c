@@ -3,21 +3,26 @@
 #include <stdio.h>
 #include <unistd.h>
 
-#define SIZE 10000000
+#define SIZE 10000
 
 void *ft_malloc(size_t size);
 void ft_free(void *ptr);
 void show_alloc_mem(void);
 
-#define STRESS 0
+#define STRESS 1
 
 int main(void)
 {
 #if STRESS
-	/* printf("ft_malloc with size %d\n", SIZE); */
-	printf("ft_free(ft_malloc) with size %d\n", SIZE);
+	// This is super fast
+	/* printf("ft_malloc() with size %d\n", SIZE); */
+	/* for (size_t i = 0; i < SIZE; ++i) { */
+	/* 	ft_malloc(32); */
+	/* } */
+
+	// This is super slow
+	printf("ft_free(ft_malloc()) with size %d\n", SIZE);
 	for (size_t i = 0; i < SIZE; ++i) {
-		/* (void)ft_malloc(32); */
 		ft_free(ft_malloc(32));
 	}
 #else
@@ -27,19 +32,27 @@ int main(void)
 	for (size_t i = 0; i < 8; ++i) {
 		/* ft_free(ft_malloc(32)); */
 		tab[i] = ft_malloc(32);
-		/* printf("\n\n\n"); */
-		/* show_alloc_mem(); */
+		printf("\n\n\n");
+		show_alloc_mem();
 		/* printf("[%ld] %p\n", i, ft_malloc(32)); */
 	}
-	show_alloc_mem();
+	/* show_alloc_mem(); */
 	/* for (int i = 7; i >= 0; --i) { */
 	/* 	ft_free(tab[i]); */
 	/* 	/1* show_alloc_mem(); *1/ */
 	/* } */
-	for (int i = 0; i < 8; ++i) {
-		ft_free(tab[i]);
-		/* show_alloc_mem(); */
-	}
+	ft_free(tab[3]);
+	ft_free(tab[5]);
+	ft_free(tab[0]);
+	ft_free(tab[1]);
+	ft_free(tab[4]);
+	ft_free(tab[6]);
+	ft_free(tab[2]);
+	ft_free(tab[7]);
+	/* for (int i = 0; i < 8; ++i) { */
+	/* 	ft_free(tab[i]); */
+	/* 	/1* show_alloc_mem(); *1/ */
+	/* } */
 	show_alloc_mem();
 	/* printf("\n"); */
 	/* ft_free(ptr); */

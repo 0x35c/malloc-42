@@ -116,6 +116,7 @@ void *ft_malloc(size_t size)
 			full_size = get_zone_size(type);
 		if (new_zones(type, full_size, 1) == -1)
 			return (NULL);
+		Zone *head = get_zone_head(type);
 		available = find_block(head, size);
 	}
 	frag_block(available, size + sizeof(Block));

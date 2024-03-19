@@ -79,6 +79,7 @@ int new_zones(block_type_t type, size_t zone_size, size_t nb_zones)
 		new_zone = (Zone *)((size_t)new_zone + zone_size);
 		if (count > 0 && count < nb_zones)
 			prev->next = new_zone;
+		new_zone->prev = prev;
 		prev = new_zone;
 		new_zone->type = type;
 		new_zone->used = NULL;
