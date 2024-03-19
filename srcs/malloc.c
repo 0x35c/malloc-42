@@ -9,6 +9,8 @@ static Block *find_block(Zone *head, size_t size)
 		for (Block *block_it = zone_it->free; block_it != NULL;
 		     block_it = block_it->next_free) {
 			if (!block_it->in_use && size <= block_it->size) {
+				if (block_it->zone != zone_it)
+					block_it->zone = zone_it;
 				return (block_it);
 			}
 		}
@@ -40,8 +42,7 @@ static Block *find_block(Zone *head, size_t size)
 static void frag_block(Block *old_block, size_t size)
 {
 	bool empty = false;
-	if (old_block->size < size - sizeof(Block) ||
-	    old_block == old_block->zone->free) {
+	if (old_block->size < size - sizeof(Block)) {
 		return;
 	}
 
@@ -54,6 +55,15 @@ static void frag_block(Block *old_block, size_t size)
 		goto next;
 	}
 	Block *new_block = (Block *)((size_t)old_block + size);
+	/* ft_printf("old_block: %p - ", old_block); */
+	/* ft_printf("old_block->zone: %p - ", old_block->zone); */
+	/* ft_printf("old_block->zone->free: %p\n", old_block->zone->free); */
+	new_block->zone = old_block->zone;
+	/* ft_printf("new_block: %p - ", new_block); */
+	/* ft_printf("new_block->zone: %p - ", new_block->zone); */
+	/* ft_printf("new_block->zone->free: %p\n", new_block->zone->free); */
+	if (new_block == old_block->zone->free)
+		return;
 
 	new_block->size = old_block->size - (size - sizeof(Block));
 	new_block->in_use = false;
@@ -61,6 +71,7 @@ static void frag_block(Block *old_block, size_t size)
 	new_block->zone = zone;
 
 	new_block->prev = old_block;
+	/* ft_printf("old_block: %p\n", old_block); */
 	new_block->next = old_block->next;
 	old_block->next = new_block;
 
@@ -120,6 +131,8 @@ void *ft_malloc(size_t size)
 		Zone *head = get_zone_head(type);
 		available = find_block(head, size);
 	}
+	/* ft_printf("available: %p\n", available); */
+	/* ft_printf("head->free: %p\n", head->free); */
 	frag_block(available, size + sizeof(Block));
 	return (available->ptr);
 }

@@ -50,14 +50,25 @@ static void unmap_zone(Zone *zone)
 
 static Block *merge_blocks(Block *left, Block *right)
 {
+	ft_printf("[0] left: %p - left->next: %p - left->next_free: %p\n", left,
+	          left->next, left->next_free);
+	ft_printf("[0] right: %p - right->next: %p - right->next_free: %p\n",
+	          right, right->next, right->next_free);
 	if (right->next) {
 		right->next->prev = left;
 		right->next->prev_free = left;
 	}
+	left->next_free = right->next_free;
 	left->next = right->next;
-	if (left->next_free != left->zone->free->next_free)
-		left->next_free = right->next_free;
-	left->size += right->size;
+	/* left->next = right->next; */
+	/* left->next_free = right->next_free; */
+	/* if (left->next_free != left->zone->free->next_free) */
+	/* 	left->next_free = right->next_free; */
+	left->size += right->size; // + sizeof(Block);
+	ft_printf("[1] left: %p - left->next: %p - left->next_free: %p\n", left,
+	          left->next, left->next_free);
+	ft_printf("[1] right: %p - right->next: %p - right->next_free: %p\n",
+	          right, right->next, right->next_free);
 	return (left);
 }
 
@@ -78,6 +89,7 @@ static void add_available(Block *available)
 
 void ft_free(void *ptr)
 {
+	ft_printf("sizeof(Zone *): %u\n", sizeof(Zone));
 	if (ptr == NULL)
 		return;
 	Block *to_free = (Block *)((size_t)ptr - sizeof(Block));
