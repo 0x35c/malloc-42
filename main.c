@@ -32,11 +32,12 @@ int main(void)
 		/* printf("[%ld] %p\n", i, ft_malloc(32)); */
 	}
 	show_alloc_mem();
-	for (size_t i = 0; i < 8; ++i) {
-		if (i == 4)
-			show_alloc_mem();
+	for (size_t i = 0; i < 7; ++i) {
 		ft_free(tab[i]);
+		/* show_alloc_mem(); */
 	}
+	show_alloc_mem();
+	ft_free(tab[7]);
 	show_alloc_mem();
 	/* printf("\n"); */
 	/* ft_free(ptr); */

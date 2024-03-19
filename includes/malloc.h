@@ -51,6 +51,7 @@ typedef struct Block {
 typedef struct Zone {
 	struct Zone *next;
 	block_type_t type;
+	size_t nb_blocks;
 	Block *free;
 	Block *used;
 } Zone;
