@@ -59,7 +59,6 @@ void ft_free(void *ptr)
 	Block *to_free = (Block *)((size_t)ptr - sizeof(Block));
 	to_free->in_use = false;
 	remove_used(to_free);
-	Zone *zone = to_free->zone;
 	if (to_free->prev && !to_free->prev->in_use) {
 		to_free = merge_blocks(to_free->prev, to_free);
 	}
