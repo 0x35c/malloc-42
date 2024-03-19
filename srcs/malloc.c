@@ -40,7 +40,8 @@ static Block *find_block(Zone *head, size_t size)
 static void frag_block(Block *old_block, size_t size)
 {
 	bool empty = false;
-	if (old_block->size < size - sizeof(Block)) {
+	if (old_block->size < size - sizeof(Block) ||
+	    old_block == old_block->zone->free) {
 		return;
 	}
 

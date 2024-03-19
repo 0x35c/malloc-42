@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include <unistd.h>
 
-#define SIZE 10000
+#define SIZE 10000000
 
 void *ft_malloc(size_t size);
 void ft_free(void *ptr);
@@ -15,16 +15,16 @@ int main(void)
 {
 #if STRESS
 	// This is super fast
-	/* printf("ft_malloc() with size %d\n", SIZE); */
-	/* for (size_t i = 0; i < SIZE; ++i) { */
-	/* 	ft_malloc(32); */
-	/* } */
+	printf("ft_malloc() with size %d\n", SIZE);
+	for (size_t i = 0; i < SIZE; ++i) {
+		ft_malloc(32);
+	}
 
 	// This is super slow
-	printf("ft_free(ft_malloc()) with size %d\n", SIZE);
-	for (size_t i = 0; i < SIZE; ++i) {
-		ft_free(ft_malloc(32));
-	}
+	/* printf("ft_free(ft_malloc()) with size %d\n", SIZE); */
+	/* for (size_t i = 0; i < SIZE; ++i) { */
+	/* 	ft_free(ft_malloc(32)); */
+	/* } */
 #else
 	show_alloc_mem();
 	/* void *ptr = ft_malloc(32); */
