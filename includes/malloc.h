@@ -1,4 +1,5 @@
 #pragma once
+#include <assert.h>
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
@@ -36,10 +37,13 @@ typedef struct Block {
 	size_t size;
 	bool in_use;
 	struct Zone *zone;
+
 	struct Block *prev;
 	struct Block *next;
+
 	struct Block *prev_used;
 	struct Block *next_used;
+
 	struct Block *prev_free;
 	struct Block *next_free;
 } Block;
@@ -56,17 +60,17 @@ typedef struct Zone {
 	Block *used;
 } Zone;
 
-typedef struct Zones {
-	Zone *tiny;
-	Zone *small;
-	Zone *large;
-} Zones;
+/* typedef struct Zones { */
+/* 	Zone *tiny; */
+/* 	Zone *small; */
+/* 	Zone *large; */
+/* } Zones; */
 
-extern Zones *zones;
+extern Zone *zones[3];
 
 /*-------- UTILS --------*/
 block_type_t get_type(size_t size);
-Zone *get_zone_head(block_type_t type);
+/* Zone *get_zone_head(block_type_t type); */
 size_t get_max_size(block_type_t type);
 size_t get_zone_size(block_type_t type);
 size_t align_mem(size_t addr);

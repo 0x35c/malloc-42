@@ -22,25 +22,18 @@ static void remove_used(Block *to_free)
 
 static void unmap_zone(Zone *zone)
 {
-	Zone **head = NULL;
-	if (zone->type == TINY)
-		head = &zones->tiny;
-	else if (zone->type == SMALL)
-		head = &zones->small;
-	else
-		head = &zones->large;
-
+	block_type_t type = zone->type;
 	Zone *left = zone->prev;
 	Zone *right = zone->next;
-	zone->next = NULL;
 	zone->prev = NULL;
+	zone->next = NULL;
 
 	if (!left && !right) {
-		*head = NULL;
+		zones[type] = NULL;
 		return;
 	}
 	if (!left)
-		*head = right;
+		zones[type] = right;
 	else
 		left->next = right;
 	if (right)
@@ -50,56 +43,43 @@ static void unmap_zone(Zone *zone)
 
 static Block *merge_blocks(Block *left, Block *right)
 {
-	ft_printf("[0] left: %p - left->next: %p - left->next_free: %p\n", left,
-	          left->next, left->next_free);
-	ft_printf("[0] right: %p - right->next: %p - right->next_free: %p\n",
-	          right, right->next, right->next_free);
-	if (right->next) {
+	if (right->next)
 		right->next->prev = left;
-		right->next->prev_free = left;
-	}
+	if (right->next_free)
+		right->next_free->prev_free = left;
 	left->next_free = right->next_free;
 	left->next = right->next;
-	/* left->next = right->next; */
-	/* left->next_free = right->next_free; */
-	/* if (left->next_free != left->zone->free->next_free) */
-	/* 	left->next_free = right->next_free; */
-	left->size += right->size; // + sizeof(Block);
-	ft_printf("[1] left: %p - left->next: %p - left->next_free: %p\n", left,
-	          left->next, left->next_free);
-	ft_printf("[1] right: %p - right->next: %p - right->next_free: %p\n",
-	          right, right->next, right->next_free);
+	left->size += right->size + sizeof(Block);
 	return (left);
 }
 
-static void add_available(Block *available)
+static void add_available(Block *available, Block *merged)
 {
 	Zone *zone = available->zone;
-	if (zone->free == NULL) {
-		zone->free = available;
-	} else if (available->size ==
-	           get_zone_size(zone->type) - sizeof(Zone)) {
-		unmap_zone(zone);
-	} else if (available != zone->free) {
+	if (merged != zone->free)
 		available->next_free = zone->free;
-		zone->free->prev_free = available;
-		zone->free = available;
-	}
+	zone->free->prev_free = available;
+	zone->free = available;
+	zone->free = available;
+	if (zone->free->next == NULL && zone->free->prev == NULL)
+		unmap_zone(zone);
 }
 
 void ft_free(void *ptr)
 {
-	ft_printf("sizeof(Zone *): %u\n", sizeof(Zone));
 	if (ptr == NULL)
 		return;
 	Block *to_free = (Block *)((size_t)ptr - sizeof(Block));
+	Block *to_merge = NULL;
 	to_free->in_use = false;
 	remove_used(to_free);
 	if (to_free->prev && !to_free->prev->in_use) {
+		to_merge = to_free;
 		to_free = merge_blocks(to_free->prev, to_free);
 	}
 	if (to_free->next && !to_free->next->in_use) {
+		to_merge = to_free->next;
 		to_free = merge_blocks(to_free, to_free->next);
 	}
-	add_available(to_free);
+	add_available(to_free, to_merge);
 }

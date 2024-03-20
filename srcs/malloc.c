@@ -3,14 +3,16 @@
 /* Find first available (not in_use) block
  * in a zone matching the size we need
  */
-static Block *find_block(Zone *head, size_t size)
+static Block *find_block(Zone *head, size_t size, Zone **current_zone)
 {
 	for (Zone *zone_it = head; zone_it != NULL; zone_it = zone_it->next) {
 		for (Block *block_it = zone_it->free; block_it != NULL;
 		     block_it = block_it->next_free) {
-			if (!block_it->in_use && size <= block_it->size) {
-				if (block_it->zone != zone_it)
-					block_it->zone = zone_it;
+			assert(!block_it->in_use);
+			if (size <= block_it->size) {
+				assert(block_it->zone &&
+				       block_it->zone == zone_it);
+				*current_zone = zone_it;
 				return (block_it);
 			}
 		}
@@ -39,55 +41,31 @@ static Block *find_block(Zone *head, size_t size)
  * We can see that it now has its own metadata and available
  * data and it points towards [6]
  */
-static void frag_block(Block *old_block, size_t size)
+static void frag_block(Zone *zone, Block *old_block, size_t size)
 {
-	bool empty = false;
-	if (old_block->size < size - sizeof(Block)) {
-		return;
-	}
-
-	Zone *zone = old_block->zone;
-	Block *left = old_block->prev_free;
-	Block *right = old_block->next_free;
-
-	if (old_block->size - size <= 0) {
-		empty = true;
-		goto next;
-	}
-	Block *new_block = (Block *)((size_t)old_block + size);
-	/* ft_printf("old_block: %p - ", old_block); */
-	/* ft_printf("old_block->zone: %p - ", old_block->zone); */
-	/* ft_printf("old_block->zone->free: %p\n", old_block->zone->free); */
-	new_block->zone = old_block->zone;
-	/* ft_printf("new_block: %p - ", new_block); */
-	/* ft_printf("new_block->zone: %p - ", new_block->zone); */
-	/* ft_printf("new_block->zone->free: %p\n", new_block->zone->free); */
-	if (new_block == old_block->zone->free)
-		return;
-
-	new_block->size = old_block->size - (size - sizeof(Block));
+	Block *new_block = (Block *)align_mem((size_t)old_block + size);
+	assert(!(new_block >=
+	         (Block *)((size_t)zone + get_zone_size(zone->type))));
+	new_block->size = old_block->size - size;
 	new_block->in_use = false;
-	new_block->ptr = (void *)align_mem((size_t)new_block + sizeof(Block));
+	new_block->ptr = (void *)((size_t)new_block + sizeof(Block));
 	new_block->zone = zone;
 
 	new_block->prev = old_block;
-	/* ft_printf("old_block: %p\n", old_block); */
 	new_block->next = old_block->next;
 	old_block->next = new_block;
 
 	new_block->prev_used = NULL;
 	new_block->next_used = NULL;
 
-	new_block->prev_free = left;
-	if (right != new_block)
-		new_block->next_free = right;
+	new_block->prev_free = old_block->prev_free;
+	new_block->next_free = old_block->next_free;
 
-	zone->free = new_block;
+	if (zone->free == old_block)
+		zone->free = new_block;
 
-next:
-	if (empty)
-		zone->free = old_block->next_free;
 	old_block->next_free = NULL;
+	old_block->prev_free = NULL;
 
 	// newly in_use block metadata
 	old_block->in_use = true;
@@ -97,6 +75,7 @@ next:
 		zone->used = old_block;
 		return;
 	}
+	old_block->prev_used = NULL;
 	old_block->next_used = zone->used;
 	zone->used->prev_used = old_block;
 	zone->used = old_block;
@@ -116,10 +95,11 @@ void *ft_malloc(size_t size)
 
 	// Find the zone we need to search
 	block_type_t type = get_type(size);
-	Zone *head = get_zone_head(type);
+	Zone *head = zones[type];
+	Zone *zone = NULL;
 
 	// Find an available block in a zone of type "type"
-	Block *available = find_block(head, size);
+	Block *available = find_block(head, size, &zone);
 	if (available == NULL) {
 		size_t full_size;
 		if (type == LARGE)
@@ -128,11 +108,11 @@ void *ft_malloc(size_t size)
 			full_size = get_zone_size(type);
 		if (new_zones(type, full_size, 1) == -1)
 			return (NULL);
-		Zone *head = get_zone_head(type);
-		available = find_block(head, size);
+		head = zones[type];
+		available = find_block(head, size, &zone);
 	}
-	/* ft_printf("available: %p\n", available); */
-	/* ft_printf("head->free: %p\n", head->free); */
-	frag_block(available, size + sizeof(Block));
+	assert(available != NULL);
+	frag_block(zone, available, size + sizeof(Block));
+
 	return (available->ptr);
 }

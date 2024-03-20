@@ -18,14 +18,14 @@ size_t get_max_size(block_type_t type)
 	return (0);
 }
 
-Zone *get_zone_head(block_type_t type)
-{
-	if (type == TINY)
-		return (zones->tiny);
-	if (type == SMALL)
-		return (zones->small);
-	return (NULL);
-}
+/* Zone *get_zone_head(block_type_t type) */
+/* { */
+/* 	if (type == TINY) */
+/* 		return (zones->tiny); */
+/* 	if (type == SMALL) */
+/* 		return (zones->small); */
+/* 	return (zones->large); */
+/* } */
 
 size_t get_zone_size(block_type_t type)
 {

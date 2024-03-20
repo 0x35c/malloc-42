@@ -16,7 +16,7 @@ int main(void)
 #if STRESS
 	// This is super fast
 	/* printf("ft_malloc() with size %d\n", SIZE); */
-	/* show_alloc_mem(); */
+	show_alloc_mem();
 	for (size_t i = 0; i < SIZE; ++i) {
 		(void)ft_malloc(32);
 		/* printf("[%ld] %p\n", i, ft_malloc(32)); */
@@ -38,11 +38,10 @@ int main(void)
 		/* show_alloc_mem(); */
 		/* printf("[%ld] %p\n", i, ft_malloc(32)); */
 	}
-	show_alloc_mem();
-	for (int i = 7; i >= 0; --i) {
-		ft_free(tab[i]);
-		show_alloc_mem();
-	}
+	/* for (int i = 7; i >= 0; --i) { */
+	/* 	ft_free(tab[i]); */
+	/* 	/1* show_alloc_mem(); *1/ */
+	/* } */
 	/* ft_free(tab[3]); */
 	/* ft_free(tab[5]); */
 	/* ft_free(tab[0]); */
@@ -53,7 +52,7 @@ int main(void)
 	/* ft_free(tab[7]); */
 	/* for (int i = 0; i < 8; ++i) { */
 	/* 	ft_free(tab[i]); */
-	/* show_alloc_mem(); */
+	/* 	/1* show_alloc_mem(); *1/ */
 	/* } */
 	/* show_alloc_mem(); */
 	/* printf("\n"); */
@@ -61,6 +60,7 @@ int main(void)
 	/* show_alloc_mem(); */
 	/* printf("new malloc: %p\n", ft_malloc(32)); */
 	/* show_alloc_mem(); */
+	show_alloc_mem();
 #endif
 	return (0);
 }

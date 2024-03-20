@@ -1,39 +1,32 @@
 #include "../includes/malloc.h"
 #include <unistd.h>
 
-Zones *zones;
+Zone *zones[3];
 
 static void append_list(Zone *head, block_type_t type)
 {
-	Zone **begin;
-	if (type == TINY)
-		begin = &zones->tiny;
-	else if (type == SMALL)
-		begin = &zones->small;
-	else
-		begin = &zones->large;
-
 	// If the list is empty, put new_zone at the beginning
-	if (*begin == NULL) {
-		*begin = head;
+	if (zones[type] == NULL) {
+		zones[type] = head;
 		return;
 	}
 
 	// Else, we put the zone at the end
-	Zone *it = *begin;
+	Zone *it = zones[type];
 	while (it->next)
 		it = it->next;
+	head->prev = it;
 	it->next = head;
 }
 
 static void new_block(Zone *zone, size_t zone_size)
 {
-	Block *new_block = (Block *)((size_t)zone + sizeof(Zone));
+	Block *new_block = (Block *)align_mem((size_t)zone + sizeof(Zone));
 
 	// Metadata
 	new_block->in_use = false;
-	new_block->size = zone_size - sizeof(Zone);
-	new_block->ptr = (Block *)align_mem((size_t)new_block + sizeof(Block));
+	new_block->size = zone_size - sizeof(Zone) - sizeof(Block);
+	new_block->ptr = (Block *)((size_t)new_block + sizeof(Block));
 	new_block->zone = zone;
 
 	// Init future linked lists
@@ -47,8 +40,8 @@ static void new_block(Zone *zone, size_t zone_size)
 	if (zone->free) {
 		zone->free->prev = new_block;
 		zone->free->prev_free = new_block;
-		new_block->next_free = zone->free;
 		new_block->next = zone->free;
+		new_block->next_free = zone->free;
 	}
 	zone->free = new_block;
 }
@@ -77,7 +70,7 @@ int new_zones(block_type_t type, size_t zone_size, size_t nb_zones)
 	Zone *prev = NULL;
 	for (size_t count = 0; count < nb_zones; ++count) {
 		new_zone = (Zone *)((size_t)new_zone + zone_size);
-		if (count > 0 && count < nb_zones)
+		if (count > 0)
 			prev->next = new_zone;
 		new_zone->prev = prev;
 		prev = new_zone;
@@ -100,13 +93,6 @@ int init_allocator(void)
 	initialized = true;
 
 	int err;
-
-	// We take 1 page to store the linked list for all the zones
-	zones = (Zones *)mmap(NULL, sizeof(Zones), PROT_READ | PROT_WRITE,
-	                      MAP_ANONYMOUS | MAP_PRIVATE, -1, 0);
-	zones->tiny = NULL;
-	zones->small = NULL;
-	zones->large = NULL;
 
 	err = new_zones(TINY, PAGES_TINY * getpagesize(), INIT_ZONES);
 	if (err < 0)
