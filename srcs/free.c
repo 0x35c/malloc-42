@@ -45,9 +45,10 @@ static Block *merge_blocks(Block *left, Block *right)
 {
 	if (right->next)
 		right->next->prev = left;
-	if (right->next_free)
+	if (right->next_free) {
 		right->next_free->prev_free = left;
-	left->next_free = right->next_free;
+		left->next_free = right->next_free;
+	}
 	left->next = right->next;
 	left->size += right->size + sizeof(Block);
 	return (left);
@@ -55,11 +56,11 @@ static Block *merge_blocks(Block *left, Block *right)
 
 static void add_available(Block *available, Block *merged)
 {
+	(void)merged;
 	Zone *zone = available->zone;
-	if (merged != zone->free)
+	if (merged != zone->free && available != zone->free)
 		available->next_free = zone->free;
 	zone->free->prev_free = available;
-	zone->free = available;
 	zone->free = available;
 	if (zone->free->next == NULL && zone->free->prev == NULL)
 		unmap_zone(zone);
@@ -67,6 +68,7 @@ static void add_available(Block *available, Block *merged)
 
 void ft_free(void *ptr)
 {
+	static int count = 0;
 	if (ptr == NULL)
 		return;
 	Block *to_free = (Block *)((size_t)ptr - sizeof(Block));
@@ -82,4 +84,5 @@ void ft_free(void *ptr)
 		to_free = merge_blocks(to_free, to_free->next);
 	}
 	add_available(to_free, to_merge);
+	count++;
 }
