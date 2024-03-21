@@ -1,13 +1,9 @@
-/* #include "includes/malloc.h" */
+#include "includes/malloc.h"
 #include <stddef.h>
 #include <stdio.h>
 #include <unistd.h>
 
 #define SIZE 1000000
-
-void *ft_malloc(size_t size);
-void ft_free(void *ptr);
-void show_alloc_mem(void);
 
 #define STRESS 0
 
@@ -38,6 +34,11 @@ int main(void)
 		/* show_alloc_mem(); */
 		/* printf("[%ld] %p\n", i, ft_malloc(32)); */
 	}
+	void *ptr = ft_realloc(tab[2], 2356);
+	void *ptr2 = ft_malloc(2400);
+	void *ptr3 = ft_realloc(tab[3], 20);
+	void *ptr4 = ft_realloc(ptr3, 18);
+	void *ptr5 = ft_realloc(ptr4, 25);
 	/* for (int i = 7; i >= 0; --i) { */
 	/* 	ft_free(tab[i]); */
 	/* 	/1* show_alloc_mem(); *1/ */
@@ -54,16 +55,19 @@ int main(void)
 	/* ft_free(tab[6]); */
 	/* ft_free(tab[2]); */
 	/* ft_free(tab[7]); */
-	for (int i = 0; i < 8; ++i) {
-		ft_free(tab[i]);
-		/* show_alloc_mem(); */
-	}
+	/* for (int i = 0; i < 8; ++i) { */
+	/* 	ft_free(tab[i]); */
+	/* 	/1* show_alloc_mem(); *1/ */
+	/* } */
 	/* show_alloc_mem(); */
 	/* printf("\n"); */
 	/* ft_free(ptr); */
 	/* show_alloc_mem(); */
 	/* printf("new malloc: %p\n", ft_malloc(32)); */
 	/* show_alloc_mem(); */
+	ft_free(ptr);
+	ft_free(ptr2);
+	ptr = ft_realloc(tab[4], 2356);
 	show_alloc_mem();
 #endif
 	return (0);

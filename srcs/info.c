@@ -1,14 +1,14 @@
 #include "../includes/malloc.h"
 
 // FULL_INFO is to display both used and unused blocks (and the nb)
-#define FULL_INFO 1
+#define FULL_INFO 0
 
 void show_alloc_mem(void)
 {
 	init_allocator();
 	char *const zones_name[3] = {"TINY", "SMALL", "LARGE"};
 
-	for (block_type_t type = 0; type < 1; ++type) {
+	for (block_type_t type = 0; type < 3; ++type) {
 		int count = 0;
 		for (Zone *zone_it = zones[type]; zone_it != NULL;
 		     zone_it = zone_it->next) {
@@ -21,8 +21,9 @@ void show_alloc_mem(void)
 			     block_it = block_it->next_free) {
 				ft_printf("%p - %p : %u bytes\n", block_it->ptr,
 				          (size_t)block_it->ptr +
-				              block_it->size + sizeof(Block),
-				          block_it->size);
+				              block_it->sub_size +
+				              sizeof(Block),
+				          block_it->sub_size);
 			}
 			if (zone_it->free)
 				ft_printf("\n");
@@ -35,8 +36,9 @@ void show_alloc_mem(void)
 			     block_it = block_it->next_used) {
 				ft_printf("%p - %p : %u bytes\n", block_it->ptr,
 				          (size_t)block_it->ptr +
-				              block_it->size + sizeof(Block),
-				          block_it->size);
+				              block_it->sub_size +
+				              sizeof(Block),
+				          block_it->sub_size);
 			}
 			if (zone_it->used)
 				ft_printf("\n");
@@ -60,8 +62,8 @@ void show_alloc_mem(void)
 /* 	ft_printf("%p - %p : %u bytes", block_it->ptr,
  */
 /* 	          (size_t)block_it->ptr + */
-/* 	              block_it->size, */
-/* 	          block_it->size); */
+/* 	              block_it->sub_size, */
+/* 	          block_it->sub_size); */
 /* #if FULL_INFO */
 /* 	if (block_it->in_use == false) */
 /* 		ft_printf(" (not in_use)\n"); */

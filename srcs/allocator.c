@@ -26,6 +26,7 @@ static void new_block(Zone *zone, size_t zone_size)
 	// Metadata
 	new_block->in_use = false;
 	new_block->size = zone_size - sizeof(Zone) - sizeof(Block);
+	new_block->sub_size = new_block->size;
 	new_block->ptr = (Block *)((size_t)new_block + sizeof(Block));
 	new_block->zone = zone;
 
@@ -65,7 +66,8 @@ int new_zones(block_type_t type, size_t zone_size, size_t nb_zones)
 		return (-1);
 	}
 
-	// Little trick to make it have a good value when doing first loop
+	// Little trick to make it have a good value when doing first
+	// loop
 	Zone *new_zone = (Zone *)((size_t)heap - zone_size);
 	Zone *prev = NULL;
 	for (size_t count = 0; count < nb_zones; ++count) {

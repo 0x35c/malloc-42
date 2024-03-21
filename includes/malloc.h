@@ -34,6 +34,7 @@ typedef enum { TINY, SMALL, LARGE } block_type_t;
  */
 typedef struct Block {
 	void *ptr;
+	size_t sub_size;
 	size_t size;
 	bool in_use;
 	struct Zone *zone;
@@ -85,4 +86,6 @@ int getpagesize(void);
 
 // Lib functions
 void *ft_malloc(size_t size);
+void ft_free(void *ptr);
+void *ft_realloc(void *ptr, size_t size);
 void show_alloc_mem(void);

@@ -19,6 +19,7 @@ SHORT_NAME := libft_malloc.so
 
 SRCS := malloc.c\
 		free.c\
+		realloc.c\
 		allocator.c\
 		info.c\
 		utils.c

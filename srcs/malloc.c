@@ -47,6 +47,7 @@ static void frag_block(Zone *zone, Block *old_block, size_t size)
 	assert(!(new_block >=
 	         (Block *)((size_t)zone + get_zone_size(zone->type))));
 	new_block->size = old_block->size - size;
+	new_block->sub_size = new_block->size;
 	new_block->in_use = false;
 	new_block->ptr = (void *)((size_t)new_block + sizeof(Block));
 	new_block->zone = zone;
@@ -70,6 +71,7 @@ static void frag_block(Zone *zone, Block *old_block, size_t size)
 	// newly in_use block metadata
 	old_block->in_use = true;
 	old_block->size = size - sizeof(Block);
+	old_block->sub_size = old_block->size;
 
 	if (zone->used == NULL) {
 		zone->used = old_block;
@@ -80,6 +82,8 @@ static void frag_block(Zone *zone, Block *old_block, size_t size)
 	zone->used->prev_used = old_block;
 	zone->used = old_block;
 }
+
+/* static void add_large(Zone *zone, Block *new_block) {} */
 
 void *ft_malloc(size_t size)
 {
@@ -103,7 +107,7 @@ void *ft_malloc(size_t size)
 	if (available == NULL) {
 		size_t full_size;
 		if (type == LARGE)
-			full_size = size + sizeof(Block);
+			full_size = size + sizeof(Block) + sizeof(Zone);
 		else
 			full_size = get_zone_size(type);
 		if (new_zones(type, full_size, 1) == -1)
@@ -112,7 +116,10 @@ void *ft_malloc(size_t size)
 		available = find_block(head, size, &zone);
 	}
 	assert(available != NULL);
-	frag_block(zone, available, size + sizeof(Block));
-
+	if (type == LARGE)
+		zone->used = available;
+	/* add_large(zone, available); */
+	else
+		frag_block(zone, available, size + sizeof(Block));
 	return (available->ptr);
 }
