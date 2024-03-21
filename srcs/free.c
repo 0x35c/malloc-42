@@ -72,6 +72,7 @@ void ft_free(void *ptr)
 	if (ptr == NULL)
 		return;
 	Block *to_free = (Block *)((size_t)ptr - sizeof(Block));
+	ft_printf("to_free: %p\n", to_free);
 	Block *to_merge = NULL;
 	to_free->in_use = false;
 	remove_used(to_free);

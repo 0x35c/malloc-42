@@ -1,6 +1,8 @@
 #include "includes/malloc.h"
+#include "libs/libft/includes/libft.h"
 #include <stddef.h>
 #include <stdio.h>
+#include <string.h>
 #include <unistd.h>
 
 #define SIZE 1000000
@@ -26,19 +28,24 @@ int main(void)
 #else
 	show_alloc_mem();
 	/* void *ptr = ft_malloc(32); */
-	void *tab[8];
+	char *tab[8];
 	for (size_t i = 0; i < 8; ++i) {
 		/* ft_free(ft_malloc(32)); */
 		tab[i] = ft_malloc(32);
+		printf("tab[i]: %p\n", tab[i]);
 		/* printf("\n\n\n"); */
 		/* show_alloc_mem(); */
 		/* printf("[%ld] %p\n", i, ft_malloc(32)); */
 	}
+	strcpy(tab[2], "test\n");
 	void *ptr = ft_realloc(tab[2], 2356);
+	printf("tab[2]: %s\n", tab[2]);
 	void *ptr2 = ft_malloc(2400);
+	strcpy(tab[3], "test more\n");
 	void *ptr3 = ft_realloc(tab[3], 20);
 	void *ptr4 = ft_realloc(ptr3, 18);
 	void *ptr5 = ft_realloc(ptr4, 25);
+	printf("ptr5: %s\n", (char *)ptr5);
 	/* for (int i = 7; i >= 0; --i) { */
 	/* 	ft_free(tab[i]); */
 	/* 	/1* show_alloc_mem(); *1/ */

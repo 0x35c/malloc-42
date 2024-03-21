@@ -2,6 +2,7 @@
 
 void *ft_realloc(void *ptr, size_t size)
 {
+	ft_printf("ptr: %p\n", ptr);
 	if (ptr == NULL)
 		return (NULL);
 	Block *block = (Block *)((size_t)ptr - sizeof(Block));
