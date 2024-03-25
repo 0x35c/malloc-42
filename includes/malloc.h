@@ -1,19 +1,26 @@
 #pragma once
-#include <assert.h>
-#include <bits/pthreadtypes.h>
+
+// pthread_mutex_*
 #include <pthread.h>
+
+// boolean types
 #include <stdbool.h>
+
+// size_t, already in libft.h but for readability
 #include <stddef.h>
-#include <stdint.h>
-#include <stdio.h>
+
+// mmap/unmap and getrlimit()
 #include <sys/mman.h>
 #include <sys/resource.h>
-#include <unistd.h>
 
 #include "../libs/libft/includes/libft.h"
 
-// BPZ = Blocks Per Zone, which is the number
-// of blocks allocated for a new zone
+// Remove this and replace it with <assert.h> header
+// for debugging purposes
+#define assert(bool)
+
+// BPZ = Blocks Per Zone, which is the max
+// number of blocks for a new zone
 enum {
 	INIT_ZONES = 8,
 	BPZ = 128,
@@ -22,38 +29,43 @@ enum {
 	MEM_ALIGN = 8
 };
 
-/* Linked list to store all the zones (pages) mapped.
- * The attribute type is either TINY, SMALL or LARGE.
- * For TINY and SMALL, the zone will be divided in blocks.
- * For LARGE, it will be entire page(s).
- */
 typedef enum { TINY, SMALL, LARGE } block_type_t;
 
-/* next and prev will never change, it's its
- * position initialized when creating the blocks
- * next_used: the next in_use block
- * ptr: the ptr to return with malloc
+/* METADATA:
+ * ptr: the ptr to return with malloc (aligned)
+ * size: the actual size
+ * sub_size: the size asked by the user (different
+ * from size only if realloc and realloc size < size)
+ * in_use: bool to track block state
+ * zone: the zone containing the block
+ *
+ * LINKED LIST:
+ * next and prev will never change, it's the original block's
+ * position (initialized when creating the blocks)
+ * next/prev_used: linked list for the
+ * in_use blocks (Block *used in struct Zone)
+ * next/prev_free: linked list for the
+ * available blocks (Block *free in struct Zone)
  */
 typedef struct Block {
+
 	void *ptr;
-	size_t sub_size;
 	size_t size;
+	size_t sub_size;
 	bool in_use;
 	struct Zone *zone;
 
 	struct Block *prev;
 	struct Block *next;
-
 	struct Block *prev_used;
 	struct Block *next_used;
-
 	struct Block *prev_free;
 	struct Block *next_free;
 } Block;
 
 /* free is the first list, when creating the blocks
- * used is a list at the end of the free list, which contains
- * all the blocks in_use
+ * used is a list at the end of the free list, which contains all the blocks
+ * in_use
  */
 typedef struct Zone {
 	struct Zone *prev;
@@ -63,7 +75,14 @@ typedef struct Zone {
 	Block *used;
 } Zone;
 
+/* Linked list to store all the zones (pages) mapped.
+ * The attribute type is either TINY, SMALL or LARGE.
+ * For TINY and SMALL, the zone will be divided in blocks.
+ * For LARGE, it will be entire page(s).
+ */
 extern Zone *zones[3];
+
+// Mutex used to make the allocator "thread-safe"
 extern pthread_mutex_t g_thread_safe;
 
 /*-------- UTILS --------*/
@@ -71,17 +90,16 @@ block_type_t get_type(size_t size);
 size_t get_max_size(block_type_t type);
 size_t get_zone_size(block_type_t type);
 size_t align_mem(size_t addr);
-/* --------------------- */
+/*-----------------------*/
 
-/*--------  ALLOCATOR --------*/
+/*-------- ALLOCATOR ---------*/
 int new_zones(block_type_t type, size_t block_size, size_t nb_zones);
 int init_allocator(void);
+/*----------------------------*/
 
-// CRINGE BOZO NATHAN
-int getpagesize(void);
-
-// Lib functions
-void *ft_malloc(size_t size);
-void ft_free(void *ptr);
-void *ft_realloc(void *ptr, size_t size);
+/*-------- LIB ---------*/
+void *malloc(size_t size);
+void free(void *ptr);
+void *realloc(void *ptr, size_t size);
 void show_alloc_mem(void);
+/*----------------------*/
