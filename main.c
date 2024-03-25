@@ -1,5 +1,4 @@
 #include "includes/malloc.h"
-#include "libs/libft/includes/libft.h"
 #include <stddef.h>
 #include <stdio.h>
 #include <string.h>
@@ -12,21 +11,15 @@
 int main(void)
 {
 #if STRESS
-	// This is super fast
 	/* printf("ft_malloc() with size %d\n", SIZE); */
 	/* show_alloc_mem(); */
-	/* for (size_t i = 0; i < SIZE; ++i) { */
+	/* for (size_t i = 0; i < SIZE; ++i) */
 	/* 	(void)ft_malloc(32); */
-	/* 	/1* printf("[%ld] %p\n", i, ft_malloc(32)); *1/ */
-	/* } */
 
-	// This is super slow
 	printf("ft_free(ft_malloc()) with size %d\n", SIZE);
-	for (size_t i = 0; i < SIZE; ++i) {
+	for (size_t i = 0; i < SIZE; ++i)
 		ft_free(ft_malloc(32));
-	}
 #else
-	show_alloc_mem();
 	/* void *ptr = ft_malloc(32); */
 	char *tab[8];
 	for (size_t i = 0; i < 8; ++i) {
@@ -41,6 +34,7 @@ int main(void)
 	void *ptr = ft_realloc(tab[2], 2356);
 	printf("tab[2]: %s\n", tab[2]);
 	void *ptr2 = ft_malloc(2400);
+	show_alloc_mem();
 	strcpy(tab[3], "test more\n");
 	void *ptr3 = ft_realloc(tab[3], 20);
 	void *ptr4 = ft_realloc(ptr3, 18);
@@ -72,9 +66,12 @@ int main(void)
 	/* show_alloc_mem(); */
 	/* printf("new malloc: %p\n", ft_malloc(32)); */
 	/* show_alloc_mem(); */
-	ft_free(ptr);
-	ft_free(ptr2);
+	/* ft_free(ptr); */
+	/* ft_free(ptr2); */
 	ptr = ft_realloc(tab[4], 2356);
+	printf("done realloc\n");
+	void *small = ft_malloc(2048);
+	printf("small: %p\n", small);
 	show_alloc_mem();
 #endif
 	return (0);

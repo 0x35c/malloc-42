@@ -5,7 +5,7 @@
 
 void show_alloc_mem(void)
 {
-	init_allocator();
+	pthread_mutex_lock(&g_thread_safe);
 	char *const zones_name[3] = {"TINY", "SMALL", "LARGE"};
 
 	for (block_type_t type = 0; type < 3; ++type) {
@@ -45,6 +45,7 @@ void show_alloc_mem(void)
 			count++;
 		}
 	}
+	pthread_mutex_unlock(&g_thread_safe);
 }
 
 /* #if FULL_INFO */

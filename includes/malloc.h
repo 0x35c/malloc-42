@@ -1,5 +1,7 @@
 #pragma once
 #include <assert.h>
+#include <bits/pthreadtypes.h>
+#include <pthread.h>
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
@@ -61,17 +63,11 @@ typedef struct Zone {
 	Block *used;
 } Zone;
 
-/* typedef struct Zones { */
-/* 	Zone *tiny; */
-/* 	Zone *small; */
-/* 	Zone *large; */
-/* } Zones; */
-
 extern Zone *zones[3];
+extern pthread_mutex_t g_thread_safe;
 
 /*-------- UTILS --------*/
 block_type_t get_type(size_t size);
-/* Zone *get_zone_head(block_type_t type); */
 size_t get_max_size(block_type_t type);
 size_t get_zone_size(block_type_t type);
 size_t align_mem(size_t addr);

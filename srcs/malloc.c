@@ -1,5 +1,7 @@
 #include "../includes/malloc.h"
 
+pthread_mutex_t g_thread_safe = PTHREAD_MUTEX_INITIALIZER;
+
 /* Find first available (not in_use) block
  * in a zone matching the size we need
  */
@@ -83,18 +85,31 @@ static void frag_block(Zone *zone, Block *old_block, size_t size)
 	zone->used = old_block;
 }
 
-/* static void add_large(Zone *zone, Block *new_block) {} */
+static void save_block(Zone *head, Block *block, Zone *zone)
+{
+	zone->free = NULL;
+	block->in_use = true;
+	if (head->used) {
+		head->used->prev_used = block;
+		head->used->prev = block;
+		block->next = head->used;
+		block->next_used = head->used;
+	}
+	head->used = block;
+}
 
 void *ft_malloc(size_t size)
 {
+	pthread_mutex_lock(&g_thread_safe);
+	void *ptr = NULL;
 	// If mmap fails, the allocator won't be able to init correctly
 	if (init_allocator() == -1) {
 		ft_dprintf(2, "malloc: couldn't init allocator\n");
-		return (NULL);
+		goto end;
 	}
 	if (size == 0) {
 		ft_dprintf(2, "malloc: can't malloc(0)\n");
-		return (NULL);
+		goto end;
 	}
 
 	// Find the zone we need to search
@@ -111,15 +126,17 @@ void *ft_malloc(size_t size)
 		else
 			full_size = get_zone_size(type);
 		if (new_zones(type, full_size, 1) == -1)
-			return (NULL);
+			goto end;
 		head = zones[type];
 		available = find_block(head, size, &zone);
 	}
 	assert(available != NULL);
 	if (type == LARGE)
-		zone->used = available;
-	/* add_large(zone, available); */
+		save_block(head, available, zone);
 	else
 		frag_block(zone, available, size + sizeof(Block));
-	return (available->ptr);
+	ptr = available->ptr;
+end:
+	pthread_mutex_unlock(&g_thread_safe);
+	return (ptr);
 }

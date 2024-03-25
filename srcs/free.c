@@ -56,7 +56,6 @@ static Block *merge_blocks(Block *left, Block *right)
 
 static void add_available(Block *available, Block *merged)
 {
-	(void)merged;
 	Zone *zone = available->zone;
 	if (merged != zone->free && available != zone->free)
 		available->next_free = zone->free;
@@ -68,11 +67,10 @@ static void add_available(Block *available, Block *merged)
 
 void ft_free(void *ptr)
 {
-	static int count = 0;
+	pthread_mutex_lock(&g_thread_safe);
 	if (ptr == NULL)
-		return;
+		goto end;
 	Block *to_free = (Block *)((size_t)ptr - sizeof(Block));
-	ft_printf("to_free: %p\n", to_free);
 	Block *to_merge = NULL;
 	to_free->in_use = false;
 	remove_used(to_free);
@@ -85,5 +83,6 @@ void ft_free(void *ptr)
 		to_free = merge_blocks(to_free, to_free->next);
 	}
 	add_available(to_free, to_merge);
-	count++;
+end:
+	pthread_mutex_unlock(&g_thread_safe);
 }

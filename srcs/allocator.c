@@ -66,8 +66,7 @@ int new_zones(block_type_t type, size_t zone_size, size_t nb_zones)
 		return (-1);
 	}
 
-	// Little trick to make it have a good value when doing first
-	// loop
+	// Little trick to make it have a good value when doing first loop
 	Zone *new_zone = (Zone *)((size_t)heap - zone_size);
 	Zone *prev = NULL;
 	for (size_t count = 0; count < nb_zones; ++count) {
