@@ -48,6 +48,8 @@ static void frag_block(Zone *zone, Block *old_block, size_t size)
 	Block *new_block = (Block *)align_mem((size_t)old_block + size);
 	assert(!(new_block >=
 	         (Block *)((size_t)zone + get_zone_size(zone->type))));
+
+	// Newly created block metadata
 	new_block->size = old_block->size - size;
 	new_block->sub_size = new_block->size;
 	new_block->in_use = false;
@@ -70,7 +72,7 @@ static void frag_block(Zone *zone, Block *old_block, size_t size)
 	old_block->next_free = NULL;
 	old_block->prev_free = NULL;
 
-	// newly in_use block metadata
+	// Newly in_use block metadata
 	old_block->in_use = true;
 	old_block->size = size - sizeof(Block);
 	old_block->sub_size = old_block->size;
@@ -85,6 +87,7 @@ static void frag_block(Zone *zone, Block *old_block, size_t size)
 	zone->used = old_block;
 }
 
+// Set the block to use and unset free
 static void save_block(Zone *head, Block *block, Zone *zone)
 {
 	zone->free = NULL;
@@ -98,10 +101,25 @@ static void save_block(Zone *head, Block *block, Zone *zone)
 	head->used = block;
 }
 
-void *ft_malloc(size_t size)
+/*
+ * size: size needed by the user to get allocated
+ *
+ * First, we init the allocator if it's the first time
+ * Then we search if there is an available block in all
+ * the zones currently mapped
+ * If no block has been found (NULL), we create 1 new zone of
+ * the corresponding type
+ * We then search again for an available block (should not be NULL)
+ * Finally, if type == LARGE, we just have to change the block to used
+ * else, we frag the block to use just what's needed
+ *
+ * ptr: returns the aligned pointer of the block (after the metadata)
+ */
+void *malloc(size_t size)
 {
 	pthread_mutex_lock(&g_thread_safe);
 	void *ptr = NULL;
+
 	// If mmap fails, the allocator won't be able to init correctly
 	if (init_allocator() == -1) {
 		ft_dprintf(2, "malloc: couldn't init allocator\n");

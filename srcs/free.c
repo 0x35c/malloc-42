@@ -20,6 +20,9 @@ static void remove_used(Block *to_free)
 		right->prev_used = left;
 }
 
+/* If all the blocks of the zone have been freed,
+ * we can unmap the zone and delete it from the list of zones
+ */
 static void unmap_zone(Zone *zone)
 {
 	block_type_t type = zone->type;
@@ -41,6 +44,9 @@ static void unmap_zone(Zone *zone)
 	munmap(zone, get_zone_size(zone->type));
 }
 
+/* If the newly freed block is next to another previously
+ * freed block, merge both of these and update the size
+ */
 static Block *merge_blocks(Block *left, Block *right)
 {
 	if (right->next)
@@ -54,6 +60,7 @@ static Block *merge_blocks(Block *left, Block *right)
 	return (left);
 }
 
+// Simply add the new block to the list of available blocks
 static void add_available(Block *available, Block *merged)
 {
 	Zone *zone = available->zone;
@@ -65,7 +72,17 @@ static void add_available(Block *available, Block *merged)
 		unmap_zone(zone);
 }
 
-void ft_free(void *ptr)
+/*
+ * ptr: pointer to free, if the pointer is invalid the free()
+ * function will have an undefined behavior (most likely segfault)
+ *
+ * First, we remove the block from the list of in_use blocks
+ * Then, we check if the block needs to be merged with another
+ * neighboring block, if so we replace the previous block by the
+ * newly merged block
+ * Finally, we add the block to the list of available blocks
+ */
+void free(void *ptr)
 {
 	pthread_mutex_lock(&g_thread_safe);
 	if (ptr == NULL)

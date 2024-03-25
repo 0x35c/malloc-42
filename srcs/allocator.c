@@ -1,5 +1,4 @@
 #include "../includes/malloc.h"
-#include <unistd.h>
 
 Zone *zones[3];
 
@@ -86,6 +85,7 @@ int new_zones(block_type_t type, size_t zone_size, size_t nb_zones)
 	return (0);
 }
 
+// Allocate INIT_ZONES nb of zones for SMALL and TINY types
 int init_allocator(void)
 {
 	static bool initialized = false;

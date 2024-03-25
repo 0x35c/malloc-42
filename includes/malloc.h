@@ -13,6 +13,9 @@
 #include <sys/mman.h>
 #include <sys/resource.h>
 
+// getpagesize()
+#include <unistd.h>
+
 #include "../libs/libft/includes/libft.h"
 
 // Remove this and replace it with <assert.h> header

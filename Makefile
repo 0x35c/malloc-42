@@ -28,7 +28,7 @@ LIBFT_DIR := libs/libft/
 
 CC := gcc
 
-CFLAGS := -Wall -Wextra -Werror -std=c99 -Wshadow -O3 -g
+CFLAGS := -Wall -Wextra -Werror -Wshadow -O3 -g
 LIBS := -Llibs/libft -lft -Llibs/libft/libs/ft_printf -lft_printf
 
 OBJS := $(addprefix objs/, $(SRCS:.c=.o))
