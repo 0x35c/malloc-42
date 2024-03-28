@@ -2,20 +2,14 @@
 
 Zone *zones[3];
 
-static void append_list(Zone *head, block_type_t type)
+static void add_zone(Zone *zone, block_type_t type)
 {
-	// If the list is empty, put new_zone at the beginning
-	if (zones[type] == NULL) {
-		zones[type] = head;
-		return;
+	// We put the zone at the beginning of the list
+	if (zones[type]) {
+		zone->next = zones[type];
+		zones[type]->prev = zone;
 	}
-
-	// Else, we put the zone at the end
-	Zone *it = zones[type];
-	while (it->next)
-		it = it->next;
-	head->prev = it;
-	it->next = head;
+	zones[type] = zone;
 }
 
 static void new_block(Zone *zone, size_t zone_size)
@@ -46,60 +40,33 @@ static void new_block(Zone *zone, size_t zone_size)
 	zone->free = new_block;
 }
 
-int new_zones(block_type_t type, size_t zone_size, size_t nb_zones)
+int new_zone(block_type_t type, size_t zone_size)
 {
 	struct rlimit limit;
 	if (getrlimit(RLIMIT_AS, &limit) == -1) {
 		ft_dprintf(2, "error: syscall getrlimit failed\n");
 		return (-1);
 	}
-	if (zone_size * nb_zones >= limit.rlim_max) {
+	if (zone_size >= limit.rlim_max) {
 		ft_dprintf(2, "error: no more memory available\n");
 		return (-1);
 	}
 
-	void *heap = mmap(NULL, zone_size * nb_zones, PROT_READ | PROT_WRITE,
+	void *heap = mmap(NULL, zone_size, PROT_READ | PROT_WRITE,
 	                  MAP_ANONYMOUS | MAP_PRIVATE, -1, 0);
 	if (heap == NULL) {
 		ft_dprintf(2, "error: syscall mmap failed\n");
 		return (-1);
 	}
 
-	// Little trick to make it have a good value when doing first loop
-	Zone *new_zone = (Zone *)((size_t)heap - zone_size);
-	Zone *prev = NULL;
-	for (size_t count = 0; count < nb_zones; ++count) {
-		new_zone = (Zone *)((size_t)new_zone + zone_size);
-		if (count > 0)
-			prev->next = new_zone;
-		new_zone->prev = prev;
-		prev = new_zone;
-		new_zone->type = type;
-		new_zone->used = NULL;
-		new_zone->next = NULL;
-		new_block(new_zone, zone_size);
-	}
+	Zone *zone = (Zone *)heap;
+	zone->type = type;
+	zone->used = NULL;
+	zone->next = NULL;
+	zone->prev = NULL;
 
-	append_list(heap, type);
+	new_block(zone, zone_size);
+	add_zone(heap, type);
 
-	return (0);
-}
-
-// Allocate INIT_ZONES nb of zones for SMALL and TINY types
-int init_allocator(void)
-{
-	static bool initialized = false;
-	if (initialized)
-		return (0);
-	initialized = true;
-
-	int err;
-
-	err = new_zones(TINY, PAGES_TINY * getpagesize(), INIT_ZONES);
-	if (err < 0)
-		return (err);
-	err = new_zones(SMALL, PAGES_SMALL * getpagesize(), INIT_ZONES);
-	if (err < 0)
-		return (err);
 	return (0);
 }

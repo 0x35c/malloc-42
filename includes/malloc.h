@@ -24,13 +24,7 @@
 
 // BPZ = Blocks Per Zone, which is the max
 // number of blocks for a new zone
-enum {
-	INIT_ZONES = 8,
-	BPZ = 128,
-	PAGES_TINY = 16,
-	PAGES_SMALL = 64,
-	MEM_ALIGN = 8
-};
+enum { BPZ = 128, PAGES_TINY = 16, PAGES_SMALL = 64, MEM_ALIGN = 8 };
 
 typedef enum { TINY, SMALL, LARGE } block_type_t;
 
@@ -96,8 +90,7 @@ size_t align_mem(size_t addr);
 /*-----------------------*/
 
 /*-------- ALLOCATOR ---------*/
-int new_zones(block_type_t type, size_t block_size, size_t nb_zones);
-int init_allocator(void);
+int new_zone(block_type_t type, size_t block_size);
 /*----------------------------*/
 
 /*-------- LIB ---------*/

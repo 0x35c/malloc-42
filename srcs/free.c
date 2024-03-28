@@ -23,8 +23,9 @@ static void remove_used(Block *to_free)
 /* If all the blocks of the zone have been freed,
  * we can unmap the zone and delete it from the list of zones
  */
-static void unmap_zone(Zone *zone)
+static int unmap_zone(Zone *zone)
 {
+	int err;
 	block_type_t type = zone->type;
 	Zone *left = zone->prev;
 	Zone *right = zone->next;
@@ -33,7 +34,7 @@ static void unmap_zone(Zone *zone)
 
 	if (!left && !right) {
 		zones[type] = NULL;
-		return;
+		goto unmap;
 	}
 	if (!left)
 		zones[type] = right;
@@ -41,7 +42,12 @@ static void unmap_zone(Zone *zone)
 		left->next = right;
 	if (right)
 		right->prev = left;
-	munmap(zone, get_zone_size(zone->type));
+unmap:
+	/* ft_printf("zone to free: %u\n", get_zone_size(zone->type)); */
+	err = munmap((void *)zone, get_zone_size(zone->type));
+	if (err)
+		ft_dprintf(2, "error: munmap failed\n");
+	return (err);
 }
 
 /* If the newly freed block is next to another previously
@@ -61,7 +67,7 @@ static Block *merge_blocks(Block *left, Block *right)
 }
 
 // Simply add the new block to the list of available blocks
-static void add_available(Block *available, Block *merged)
+static int add_available(Block *available, Block *merged)
 {
 	Zone *zone = available->zone;
 	if (merged != zone->free && available != zone->free)
@@ -69,8 +75,12 @@ static void add_available(Block *available, Block *merged)
 	if (zone->free)
 		zone->free->prev_free = available;
 	zone->free = available;
-	if (zone->free->next == NULL && zone->free->prev == NULL)
-		unmap_zone(zone);
+	if ((zone->free->next == NULL && zone->free->prev == NULL) ||
+	    zone->type == LARGE) {
+		/* ft_printf("unmapping zone\n"); */
+		return (unmap_zone(zone));
+	}
+	return (0);
 }
 
 /*
@@ -100,7 +110,9 @@ void free(void *ptr)
 		to_merge = to_free->next;
 		to_free = merge_blocks(to_free, to_free->next);
 	}
-	add_available(to_free, to_merge);
+	int err = add_available(to_free, to_merge);
+	if (err)
+		ft_dprintf(2, "free: fatal error\n");
 end:
 	pthread_mutex_unlock(&g_thread_safe);
 }

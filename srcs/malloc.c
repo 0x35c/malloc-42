@@ -120,11 +120,6 @@ void *malloc(size_t size)
 	pthread_mutex_lock(&g_thread_safe);
 	void *ptr = NULL;
 
-	// If mmap fails, the allocator won't be able to init correctly
-	if (init_allocator() == -1) {
-		ft_dprintf(2, "malloc: couldn't init allocator\n");
-		goto end;
-	}
 	if (size == 0) {
 		ft_dprintf(2, "malloc: can't malloc(0)\n");
 		goto end;
@@ -143,7 +138,7 @@ void *malloc(size_t size)
 			full_size = size + sizeof(Block) + sizeof(Zone);
 		else
 			full_size = get_zone_size(type);
-		if (new_zones(type, full_size, 1) == -1)
+		if (new_zone(type, full_size) == -1)
 			goto end;
 		head = zones[type];
 		available = find_block(head, size, &zone);

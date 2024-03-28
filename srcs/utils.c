@@ -12,9 +12,9 @@ block_type_t get_type(size_t size)
 size_t get_max_size(block_type_t type)
 {
 	if (type == TINY)
-		return ((PAGES_TINY * getpagesize()) / 128 - sizeof(Block));
+		return ((PAGES_TINY * getpagesize()) / BPZ - sizeof(Block));
 	if (type == SMALL)
-		return ((PAGES_SMALL * getpagesize()) / 128 - sizeof(Block));
+		return ((PAGES_SMALL * getpagesize()) / BPZ - sizeof(Block));
 	return (0);
 }
 
