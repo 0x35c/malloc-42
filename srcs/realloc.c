@@ -29,7 +29,7 @@ void *realloc(void *ptr, size_t size)
 	pthread_mutex_lock(&g_thread_safe);
 	if (new_ptr == NULL)
 		goto end;
-	ft_memmove(new_ptr, ptr, size);
+	ft_memmove(new_ptr, ptr, block->size);
 	pthread_mutex_unlock(&g_thread_safe);
 	free(ptr);
 	pthread_mutex_lock(&g_thread_safe);

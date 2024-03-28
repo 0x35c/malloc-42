@@ -66,7 +66,8 @@ static void add_available(Block *available, Block *merged)
 	Zone *zone = available->zone;
 	if (merged != zone->free && available != zone->free)
 		available->next_free = zone->free;
-	zone->free->prev_free = available;
+	if (zone->free)
+		zone->free->prev_free = available;
 	zone->free = available;
 	if (zone->free->next == NULL && zone->free->prev == NULL)
 		unmap_zone(zone);

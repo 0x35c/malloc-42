@@ -1,6 +1,6 @@
 #include "../includes/malloc.h"
 
-// FULL_INFO is to display both used and unused blocks (and the nb)
+// FULL_INFO is to display (or not) both used and unused blocks
 #define FULL_INFO 0
 
 void show_alloc_mem(void)
@@ -47,31 +47,3 @@ void show_alloc_mem(void)
 	}
 	pthread_mutex_unlock(&g_thread_safe);
 }
-
-/* #if FULL_INFO */
-/* 			ft_printf("%s : %p with %u
- * blocks\n", zones_name[type], */
-/* 			          zone_it,
- * get_nb_blocks(zone_it->head)); */
-/* #else */
-/* 			ft_printf("%s : %p\n",
- * zones_name[type], zone_it); */
-/* #endif */
-/* for (Block *block_it = zone_it->head; block_it !=
- * NULL; */
-/*      block_it = block_it->next) { */
-/* 	ft_printf("%p - %p : %u bytes", block_it->ptr,
- */
-/* 	          (size_t)block_it->ptr + */
-/* 	              block_it->sub_size, */
-/* 	          block_it->sub_size); */
-/* #if FULL_INFO */
-/* 	if (block_it->in_use == false) */
-/* 		ft_printf(" (not in_use)\n"); */
-/* 	else */
-/* 		ft_printf(" (in_use)\n"); */
-/* #else */
-/* 	if (block_it->in_use == true) */
-/* 		ft_printf("\n"); */
-/* #endif */
-/* } */
