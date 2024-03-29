@@ -1,20 +1,19 @@
-#include "../includes/malloc.h"
+#include "malloc.h"
 
 pthread_mutex_t g_thread_safe = PTHREAD_MUTEX_INITIALIZER;
 
-/* Find first available (not in_use) block
+/*
+ * Find first available (not in_use) block
  * in a zone matching the size we need
  */
-static Block *find_block(Zone *head, size_t size, Zone **current_zone)
+static Block *find_block(Zone *head, size_t size)
 {
 	for (Zone *zone_it = head; zone_it != NULL; zone_it = zone_it->next) {
 		for (Block *block_it = zone_it->free; block_it != NULL;
 		     block_it = block_it->next_free) {
 			assert(!block_it->in_use);
 			if (size <= block_it->size) {
-				assert(block_it->zone &&
-				       block_it->zone == zone_it);
-				*current_zone = zone_it;
+				assert(block_it->zone == zone_it);
 				return (block_it);
 			}
 		}
@@ -22,8 +21,9 @@ static Block *find_block(Zone *head, size_t size, Zone **current_zone)
 	return (NULL);
 }
 
-/* PARTIALLY DEPRECATED */
-/* This will split the newly allocated block to use
+// PARTIALLY DEPRECATED
+/*
+ * This will split the newly allocated block to use
  * the remaining bytes for a new block
  * This is our linked list of blocks
  * ... -> [5] -> [6] -> ...
@@ -128,10 +128,9 @@ void *malloc(size_t size)
 	// Find the zone we need to search
 	block_type_t type = get_type(size);
 	Zone *head = zones[type];
-	Zone *zone = NULL;
 
 	// Find an available block in a zone of type "type"
-	Block *available = find_block(head, size, &zone);
+	Block *available = find_block(head, size);
 	if (available == NULL) {
 		size_t full_size;
 		if (type == LARGE)
@@ -141,13 +140,13 @@ void *malloc(size_t size)
 		if (new_zone(type, full_size) == -1)
 			goto end;
 		head = zones[type];
-		available = find_block(head, size, &zone);
+		available = find_block(head, size);
 	}
 	assert(available != NULL);
 	if (type == LARGE)
-		save_block(head, available, zone);
+		save_block(head, available, available->zone);
 	else
-		frag_block(zone, available, size + sizeof(Block));
+		frag_block(available->zone, available, size + sizeof(Block));
 	ptr = available->ptr;
 end:
 	pthread_mutex_unlock(&g_thread_safe);

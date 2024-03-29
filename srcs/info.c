@@ -1,4 +1,4 @@
-#include "../includes/malloc.h"
+#include "malloc.h"
 
 // FULL_INFO is to display (or not) both used and unused blocks
 #define FULL_INFO 0
@@ -7,6 +7,7 @@ void show_alloc_mem(void)
 {
 	pthread_mutex_lock(&g_thread_safe);
 	char *const zones_name[3] = {"TINY", "SMALL", "LARGE"};
+	size_t total_size = 0;
 
 	for (block_type_t type = 0; type < 3; ++type) {
 		int count = 0;
@@ -39,11 +40,13 @@ void show_alloc_mem(void)
 				              block_it->sub_size +
 				              sizeof(Block),
 				          block_it->sub_size);
+				total_size += block_it->sub_size;
 			}
 			if (zone_it->used)
 				ft_printf("\n");
 			count++;
 		}
 	}
+	ft_printf("Total: %u\n", total_size);
 	pthread_mutex_unlock(&g_thread_safe);
 }

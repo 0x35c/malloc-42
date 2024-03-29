@@ -1,4 +1,4 @@
-#include "../includes/malloc.h"
+#include "malloc.h"
 
 static void remove_used(Block *to_free)
 {
@@ -20,12 +20,13 @@ static void remove_used(Block *to_free)
 		right->prev_used = left;
 }
 
-/* If all the blocks of the zone have been freed,
+/*
+ * If all the blocks of the zone have been freed,
  * we can unmap the zone and delete it from the list of zones
  */
 static int unmap_zone(Zone *zone)
 {
-	int err;
+	int err = 0;
 	block_type_t type = zone->type;
 	Zone *left = zone->prev;
 	Zone *right = zone->next;
@@ -43,14 +44,14 @@ static int unmap_zone(Zone *zone)
 	if (right)
 		right->prev = left;
 unmap:
-	/* ft_printf("zone to free: %u\n", get_zone_size(zone->type)); */
-	err = munmap((void *)zone, get_zone_size(zone->type));
+	err = munmap((void *)zone, zone->size);
 	if (err)
 		ft_dprintf(2, "error: munmap failed\n");
 	return (err);
 }
 
-/* If the newly freed block is next to another previously
+/*
+ * If the newly freed block is next to another previously
  * freed block, merge both of these and update the size
  */
 static Block *merge_blocks(Block *left, Block *right)
@@ -75,11 +76,8 @@ static int add_available(Block *available, Block *merged)
 	if (zone->free)
 		zone->free->prev_free = available;
 	zone->free = available;
-	if ((zone->free->next == NULL && zone->free->prev == NULL) ||
-	    zone->type == LARGE) {
-		/* ft_printf("unmapping zone\n"); */
+	if (zone->type == LARGE)
 		return (unmap_zone(zone));
-	}
 	return (0);
 }
 

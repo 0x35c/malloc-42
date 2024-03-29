@@ -27,7 +27,7 @@ int main(void)
 		i++;
 	}
 #ifndef LIBC
-	/* show_alloc_mem(); */
+	show_alloc_mem();
 #endif
 	return (0);
 }

@@ -1,4 +1,8 @@
-#include "../includes/malloc.h"
+#include "malloc.h"
+
+// Prototype for free and malloc
+void free(void *ptr);
+void *malloc(size_t size);
 
 /*
  * ptr: block to resize (undefined behavior if invalid)

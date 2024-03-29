@@ -1,4 +1,4 @@
-#include "../includes/malloc.h"
+#include "malloc.h"
 
 Zone *zones[3];
 
@@ -40,19 +40,19 @@ static void new_block(Zone *zone, size_t zone_size)
 	zone->free = new_block;
 }
 
-int new_zone(block_type_t type, size_t zone_size)
+int new_zone(block_type_t type, size_t size)
 {
 	struct rlimit limit;
 	if (getrlimit(RLIMIT_AS, &limit) == -1) {
 		ft_dprintf(2, "error: syscall getrlimit failed\n");
 		return (-1);
 	}
-	if (zone_size >= limit.rlim_max) {
+	if (size >= limit.rlim_max) {
 		ft_dprintf(2, "error: no more memory available\n");
 		return (-1);
 	}
 
-	void *heap = mmap(NULL, zone_size, PROT_READ | PROT_WRITE,
+	void *heap = mmap(NULL, size, PROT_READ | PROT_WRITE,
 	                  MAP_ANONYMOUS | MAP_PRIVATE, -1, 0);
 	if (heap == NULL) {
 		ft_dprintf(2, "error: syscall mmap failed\n");
@@ -61,11 +61,12 @@ int new_zone(block_type_t type, size_t zone_size)
 
 	Zone *zone = (Zone *)heap;
 	zone->type = type;
+	zone->size = size;
 	zone->used = NULL;
 	zone->next = NULL;
 	zone->prev = NULL;
 
-	new_block(zone, zone_size);
+	new_block(zone, size);
 	add_zone(heap, type);
 
 	return (0);
