@@ -3,9 +3,11 @@
 static size_t get_block_size(block_type_t type)
 {
 	if (type == TINY)
-		return ((PAGES_TINY * getpagesize()) / BPZ - sizeof(Block));
+		return ((PAGES_TINY * getpagesize()) / BPZ -
+		        align_mem(sizeof(Block)));
 	if (type == SMALL)
-		return ((PAGES_SMALL * getpagesize()) / BPZ - sizeof(Block));
+		return ((PAGES_SMALL * getpagesize()) / BPZ -
+		        align_mem(sizeof(Block)));
 	return (0);
 }
 

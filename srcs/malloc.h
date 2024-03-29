@@ -18,12 +18,12 @@
 
 // Remove this and replace it with <assert.h> header
 // for debugging purposes
-/* #include <assert.h> */
-#define assert(bool)
+#include <assert.h>
+/* #define assert(bool) */
 
 // BPZ = Blocks Per Zone, which is the max
 // number of blocks for a new zone
-enum { BPZ = 128, PAGES_TINY = 16, PAGES_SMALL = 64, MEM_ALIGN = 8 };
+enum { BPZ = 128, PAGES_TINY = 16, PAGES_SMALL = 64, MEM_ALIGN = 16 };
 
 typedef enum { TINY, SMALL, LARGE } block_type_t;
 
@@ -44,7 +44,6 @@ typedef enum { TINY, SMALL, LARGE } block_type_t;
  * available blocks (Block *free in struct Zone)
  */
 typedef struct Block {
-
 	void *ptr;
 	size_t size;
 	size_t sub_size;

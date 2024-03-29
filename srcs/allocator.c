@@ -18,9 +18,10 @@ static void new_block(Zone *zone, size_t zone_size)
 
 	// Metadata
 	new_block->in_use = false;
-	new_block->size = zone_size - sizeof(Zone) - sizeof(Block);
+	new_block->size = zone_size - sizeof(Zone) - align_mem(sizeof(Block));
 	new_block->sub_size = new_block->size;
-	new_block->ptr = (Block *)((size_t)new_block + sizeof(Block));
+	new_block->ptr =
+	    (Block *)((size_t)new_block + align_mem(sizeof(Block)));
 	new_block->zone = zone;
 
 	// Init future linked lists

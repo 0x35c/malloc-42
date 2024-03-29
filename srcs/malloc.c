@@ -45,15 +45,21 @@ static Block *find_block(Zone *head, size_t size)
  */
 static void frag_block(Zone *zone, Block *old_block, size_t size)
 {
-	Block *new_block = (Block *)align_mem((size_t)old_block + size);
-	assert(!(new_block >=
-	         (Block *)((size_t)zone + get_zone_size(zone->type))));
+	if (old_block->size <= size) {
+		if (zone->free == old_block)
+			zone->free = NULL;
+		old_block->next = NULL;
+		goto empty;
+	}
+	Block *new_block = (Block *)((size_t)old_block + size);
+	assert(
+	    !(new_block > (Block *)((size_t)zone + get_zone_size(zone->type))));
 
 	// Newly created block metadata
 	new_block->size = old_block->size - size;
 	new_block->sub_size = new_block->size;
 	new_block->in_use = false;
-	new_block->ptr = (void *)((size_t)new_block + sizeof(Block));
+	new_block->ptr = (void *)((size_t)new_block + align_mem(sizeof(Block)));
 	new_block->zone = zone;
 
 	new_block->prev = old_block;
@@ -68,13 +74,13 @@ static void frag_block(Zone *zone, Block *old_block, size_t size)
 
 	if (zone->free == old_block)
 		zone->free = new_block;
-
+empty:
 	old_block->next_free = NULL;
 	old_block->prev_free = NULL;
 
 	// Newly in_use block metadata
 	old_block->in_use = true;
-	old_block->size = size - sizeof(Block);
+	old_block->size = size - align_mem(sizeof(Block));
 	old_block->sub_size = old_block->size;
 
 	if (zone->used == NULL) {
@@ -134,7 +140,8 @@ void *malloc(size_t size)
 	if (available == NULL) {
 		size_t full_size;
 		if (type == LARGE)
-			full_size = size + sizeof(Block) + sizeof(Zone);
+			full_size =
+			    size + align_mem(sizeof(Block)) + sizeof(Zone);
 		else
 			full_size = get_zone_size(type);
 		if (new_zone(type, full_size) == -1)
@@ -146,7 +153,8 @@ void *malloc(size_t size)
 	if (type == LARGE)
 		save_block(head, available, available->zone);
 	else
-		frag_block(available->zone, available, size + sizeof(Block));
+		frag_block(available->zone, available,
+		           size + align_mem(sizeof(Block)));
 	ptr = available->ptr;
 end:
 	pthread_mutex_unlock(&g_thread_safe);
